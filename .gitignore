@@ -10,12 +10,16 @@ venv/
 
 # Runtime
 .run/
+server.pid
+server.out.log
+server.err.log
 
 # Data & Models
 chroma_db/
 marker_output/
 finetuning/output/
 finetuning/results/
+data/ui_state/
 data/uploads/*
 !data/uploads/.gitkeep
 data/temp/*

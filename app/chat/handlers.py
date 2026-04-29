@@ -10,8 +10,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from app.config import OLLAMA_MODEL
-from app.core.llm import call_ollama, get_response_text
+from app.config import DEFAULT_MODEL
+from app.core.llm import call_llm, get_response_text
 from app.core.web_search import format_search_results, search_web
 from app.models.schemas import Message
 
@@ -42,8 +42,8 @@ WEB_SEARCH_HINTS = [
     "최근",
     "현재",
     "오늘",
-    "날씨",
     "뉴스",
+    "날씨",
     "주가",
     "가격",
     "실시간",
@@ -105,7 +105,7 @@ def handle_chat(
     del user_id
 
     history = history or []
-    selected_model = model or OLLAMA_MODEL
+    selected_model = model or DEFAULT_MODEL
     web_context = ""
 
     if web_search_enabled and _might_need_web_search(user_message):
@@ -121,7 +121,7 @@ def handle_chat(
         system_prompt=system_prompt,
     )
 
-    result = call_ollama(prompt, model=selected_model)
+    result = call_llm(prompt, model=selected_model)
     answer = _strip_markdown_emphasis(get_response_text(result))
 
     return {

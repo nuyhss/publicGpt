@@ -1,22 +1,22 @@
 # PublicGPT
 
-채팅 전용 FastAPI + Ollama 프로젝트입니다.
+OpenAI API 기반 채팅 전용 FastAPI 프로젝트입니다.
 
-## 남긴 기능
+## 포함 기능
 
 - 일반 채팅 UI
 - 최근 대화 히스토리 전달
-- Ollama 모델 선택
+- OpenAI 모델 선택
 - 선택적 웹 검색 보강
 - OpenAI 호환 `/v1/chat/completions`
 
-## 제거한 기능
+## 제거된 기능
 
 - 문서 업로드
 - 문서 보관함
 - PDF/OCR 파이프라인
 - 벡터 문서 검색 UI
-- 이미지/음성 전용 페이지 흐름
+- Ollama 실행 경로
 
 ## 실행
 
@@ -24,14 +24,14 @@
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Ollama 예시:
+환경 변수 예시:
 
 ```bash
-ollama serve
-ollama pull qwen2.5:7b
+set OPENAI_API_KEY=your_key_here
+set OPENAI_MODEL=gpt-5.5
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 접속:
@@ -40,8 +40,6 @@ ollama pull qwen2.5:7b
 - `http://127.0.0.1:8000/docs`
 
 ## 다음 단계
-
-이 상태를 베이스로 해서 아래를 붙이면 됩니다.
 
 1. 채팅 원문 DB 저장
 2. 세션 요약 저장

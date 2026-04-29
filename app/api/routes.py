@@ -13,8 +13,8 @@ from typing import Optional
 from fastapi import APIRouter, Body, HTTPException
 
 from app.chat.handlers import handle_chat
-from app.config import AVAILABLE_MODELS, DATA_DIR, OLLAMA_MODEL
-from app.core.llm import check_ollama_health
+from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL
+from app.core.llm import check_llm_health
 from app.models.schemas import ChatRequest, ChatResponse
 
 logger = logging.getLogger("publicgpt.api")
@@ -50,7 +50,8 @@ def root():
     return {
         "message": "PublicGPT API is running",
         "version": "1.0.0",
-        "model": OLLAMA_MODEL,
+        "provider": "openai",
+        "model": DEFAULT_MODEL,
         "data_dir": str(DATA_DIR),
     }
 
@@ -58,11 +59,12 @@ def root():
 @router.get("/health")
 def health():
     try:
-        ollama_status = check_ollama_health()
+        llm_status = check_llm_health()
         return {
             "status": "ok",
-            "ollama": ollama_status["status"],
-            "model": OLLAMA_MODEL,
+            "provider": "openai",
+            "llm": llm_status["status"],
+            "model": DEFAULT_MODEL,
             "available_models": AVAILABLE_MODELS,
             "web_search_provider": "tavily_or_duckduckgo",
         }
@@ -73,7 +75,8 @@ def health():
 @router.get("/models")
 def list_models():
     return {
-        "default": OLLAMA_MODEL,
+        "provider": "openai",
+        "default": DEFAULT_MODEL,
         "available": AVAILABLE_MODELS,
     }
 
@@ -131,13 +134,13 @@ def chat(req: ChatRequest):
         result = handle_chat(
             user_message=req.message,
             history=req.history,
-            model=req.model or OLLAMA_MODEL,
+            model=req.model or DEFAULT_MODEL,
             system_prompt=req.system_prompt,
             web_search_enabled=req.web_search_enabled,
             user_id=req.user_id,
         )
         return ChatResponse(
-            model=req.model or OLLAMA_MODEL,
+            model=req.model or DEFAULT_MODEL,
             answer=result["answer"],
             mode=result.get("mode", "general"),
             done=True,

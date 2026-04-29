@@ -505,15 +505,16 @@
       }
     }
 
-    async function loadHealth() {
+async function loadHealth() {
       try {
         const response = await fetch(API + "/health");
         const payload = await response.json();
-        statusText.textContent = payload.ollama === "connected"
-          ? `Ollama 연결됨 · 기본 모델 ${payload.model}`
-          : "Ollama 연결 안 됨";
+        const provider = payload.provider || "llm";
+        statusText.textContent = payload.llm === "connected"
+          ? `${provider} connected · default model ${payload.model}`
+          : `${provider} disconnected`;
       } catch (error) {
-        statusText.textContent = "서버 상태를 불러오지 못했습니다.";
+        statusText.textContent = "Failed to load server health.";
       }
     }
 

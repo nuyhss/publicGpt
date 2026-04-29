@@ -10,7 +10,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 
 from app.chat.handlers import handle_chat
-from app.config import AVAILABLE_MODELS, OLLAMA_MODEL
+from app.config import AVAILABLE_MODELS, DEFAULT_MODEL
 from app.models.schemas import Message, OpenAIChatRequest, OpenAIMessage
 
 logger = logging.getLogger("publicgpt.openai_compat")
@@ -44,7 +44,7 @@ def list_models():
     return {
         "object": "list",
         "data": [
-            {"id": model_id, "object": "model", "created": 0, "owned_by": "local"}
+            {"id": model_id, "object": "model", "created": 0, "owned_by": "openai"}
             for model_id in AVAILABLE_MODELS
         ],
     }
@@ -54,7 +54,7 @@ def list_models():
 def chat_completions(req: OpenAIChatRequest):
     try:
         system_prompt, history, user_message = _convert_openai_messages(req.messages)
-        selected_model = req.model or OLLAMA_MODEL
+        selected_model = req.model or DEFAULT_MODEL
 
         result = handle_chat(
             user_message=user_message,

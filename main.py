@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.openai_compat import router as openai_router
 from app.api.routes import router as main_router
 from app.api.upload_ui import router as ui_router
-from app.config import AVAILABLE_MODELS, DATA_DIR, OLLAMA_MODEL, STATIC_DIR, logger, setup_logging
+from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, STATIC_DIR, logger, setup_logging
 
 
 @asynccontextmanager
@@ -20,7 +20,8 @@ async def lifespan(app: FastAPI):
 
     logger.info("=" * 60)
     logger.info("PublicGPT API starting up")
-    logger.info("  Default model : %s", OLLAMA_MODEL)
+    logger.info("  Provider      : openai")
+    logger.info("  Default model : %s", DEFAULT_MODEL)
     logger.info("  Models        : %s", ", ".join(m.strip() for m in AVAILABLE_MODELS))
     logger.info("  Data dir      : %s", DATA_DIR)
     logger.info("  Chat UI       : http://127.0.0.1:8000/ui")
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PublicGPT API",
     version="1.0.0",
-    description="Chat-only FastAPI app backed by Ollama.",
+    description="Chat-only FastAPI app backed by Ollama or OpenAI.",
     lifespan=lifespan,
 )
 
