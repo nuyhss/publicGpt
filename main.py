@@ -1,5 +1,5 @@
 """
-Application entry point for the slim chat-only PublicGPT app.
+Application entry point for the OpenAI-backed PublicGPT app.
 """
 
 from contextlib import asynccontextmanager
@@ -7,9 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from app.api.chat_ui import router as ui_router
 from app.api.openai_compat import router as openai_router
 from app.api.routes import router as main_router
-from app.api.upload_ui import router as ui_router
 from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, STATIC_DIR, logger, setup_logging
 
 
@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PublicGPT API",
     version="1.0.0",
-    description="Chat-only FastAPI app backed by Ollama or OpenAI.",
+    description="Chat-only FastAPI app backed by OpenAI.",
     lifespan=lifespan,
 )
 

@@ -1,8 +1,5 @@
 """
-Chat-only request handling.
-
-This version intentionally removes document-upload and retrieval behavior so the
-project can focus on a clean public-chatbot experience.
+Chat request handling for the OpenAI-backed chatbot base.
 """
 
 from __future__ import annotations
@@ -10,7 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from app.config import DEFAULT_MODEL
+from app.config import CHAT_HISTORY_MAX_MESSAGES, DEFAULT_MODEL
 from app.core.llm import call_llm, get_response_text
 from app.core.web_search import format_search_results, search_web
 from app.models.schemas import Message
@@ -24,42 +21,13 @@ DEFAULT_SYSTEM_PROMPT = (
     "If web search results are provided, use them only when they are relevant."
 )
 
-WEB_SEARCH_HINTS = [
-    "today",
-    "latest",
-    "recent",
-    "current",
-    "now",
-    "news",
-    "price",
-    "stock",
-    "weather",
-    "score",
-    "live",
-    "release date",
-    "발표",
-    "최신",
-    "최근",
-    "현재",
-    "오늘",
-    "뉴스",
-    "날씨",
-    "주가",
-    "가격",
-    "실시간",
-]
 
-
-def _format_history(history: List[Message], max_turns: int = 12) -> str:
+def _format_history(history: List[Message]) -> str:
     if not history:
         return ""
-    trimmed = history[-max_turns:]
+
+    trimmed = history[-CHAT_HISTORY_MAX_MESSAGES:] if CHAT_HISTORY_MAX_MESSAGES > 0 else history
     return "\n\n".join(f"[{item.role}]\n{item.content}" for item in trimmed)
-
-
-def _might_need_web_search(text: str) -> bool:
-    lowered = (text or "").lower()
-    return any(keyword in lowered for keyword in WEB_SEARCH_HINTS)
 
 
 def _build_prompt(
@@ -98,8 +66,8 @@ def handle_chat(
     """
     Handle a plain chat request.
 
-    `user_id` is kept in the signature for forward compatibility with upcoming
-    chat-memory work, even though it is not used yet.
+    `user_id` is kept in the signature for forward compatibility with future
+    memory work, even though it is not used yet.
     """
 
     del user_id
@@ -108,11 +76,11 @@ def handle_chat(
     selected_model = model or DEFAULT_MODEL
     web_context = ""
 
-    if web_search_enabled and _might_need_web_search(user_message):
+    if web_search_enabled:
         try:
             web_context = format_search_results(search_web(user_message, max_results=3))
         except Exception as exc:
-            logger.debug("Web search skipped after failure: %s", exc)
+            logger.debug("Web search failed and was skipped: %s", exc)
 
     prompt = _build_prompt(
         user_message=user_message,
