@@ -13,6 +13,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR / "data"))
 STATIC_DIR = BASE_DIR / "static"
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", DATA_DIR / "publicgpt.sqlite3"))
 
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()

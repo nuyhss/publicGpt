@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from app.config import CHAT_HISTORY_MAX_MESSAGES, DEFAULT_MODEL
+from app.core.database import list_memories
 from app.core.llm import call_llm, get_response_text
 from app.core.web_search import format_search_results, search_web
 from app.models.schemas import Message
@@ -33,6 +34,7 @@ def _format_history(history: List[Message]) -> str:
 def _build_prompt(
     user_message: str,
     history: List[Message],
+    memory_context: str = "",
     web_context: str = "",
     system_prompt: Optional[str] = None,
 ) -> str:
@@ -41,6 +43,9 @@ def _build_prompt(
     history_text = _format_history(history)
     if history_text:
         parts.append(f"[Conversation history]\n{history_text}")
+
+    if memory_context:
+        parts.append(f"[Long-term memory]\n{memory_context}")
 
     if web_context:
         parts.append(f"[Web search results]\n{web_context}")
@@ -64,17 +69,14 @@ def handle_chat(
     user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Handle a plain chat request.
-
-    `user_id` is kept in the signature for forward compatibility with future
-    memory work, even though it is not used yet.
+    Handle a plain chat request with optional long-term memory context.
     """
-
-    del user_id
 
     history = history or []
     selected_model = model or DEFAULT_MODEL
     web_context = ""
+    memories = list_memories(user_id=user_id, limit=12)
+    memory_context = "\n".join(f"- {item['content']}" for item in memories)
 
     if web_search_enabled:
         try:
@@ -85,6 +87,7 @@ def handle_chat(
     prompt = _build_prompt(
         user_message=user_message,
         history=history,
+        memory_context=memory_context,
         web_context=web_context,
         system_prompt=system_prompt,
     )
@@ -96,4 +99,5 @@ def handle_chat(
         "answer": answer,
         "mode": "web_search" if web_context else "general",
         "sources": [],
+        "memories_used": len(memories),
     }

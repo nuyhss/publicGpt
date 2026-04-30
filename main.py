@@ -11,12 +11,14 @@ from app.api.chat_ui import router as ui_router
 from app.api.openai_compat import router as openai_router
 from app.api.routes import router as main_router
 from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, STATIC_DIR, logger, setup_logging
+from app.core.database import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    init_db()
 
     logger.info("=" * 60)
     logger.info("PublicGPT API starting up")

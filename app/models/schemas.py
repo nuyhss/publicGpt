@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     model: Optional[str] = None
     web_search_enabled: bool = True
     user_id: Optional[str] = None
+    chat_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -29,6 +30,23 @@ class ChatResponse(BaseModel):
     answer: str
     mode: str
     done: bool = True
+    memories_used: int = 0
+
+
+class MemoryCreateRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=1000)
+    user_id: Optional[str] = None
+    importance: int = Field(default=1, ge=1, le=5)
+
+
+class MemoryResponse(BaseModel):
+    id: int
+    user_id: str
+    content: str
+    importance: int
+    source_message_id: Optional[int] = None
+    created_at: str
+    updated_at: str
 
 
 class WebSearchRequest(BaseModel):

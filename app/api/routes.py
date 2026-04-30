@@ -13,9 +13,18 @@ from typing import Optional
 from fastapi import APIRouter, Body, HTTPException
 
 from app.chat.handlers import handle_chat
-from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL
+from app.config import AVAILABLE_MODELS, DATABASE_PATH, DATA_DIR, DEFAULT_MODEL
+from app.core.database import (
+    add_memory,
+    add_message,
+    delete_memory,
+    list_memories,
+    list_messages,
+    maybe_extract_memory,
+    normalize_user_id,
+)
 from app.core.llm import check_llm_health
-from app.models.schemas import ChatRequest, ChatResponse
+from app.models.schemas import ChatRequest, ChatResponse, MemoryCreateRequest, MemoryResponse
 
 logger = logging.getLogger("publicgpt.api")
 
@@ -53,6 +62,8 @@ def root():
         "provider": "openai",
         "model": DEFAULT_MODEL,
         "data_dir": str(DATA_DIR),
+        "database": "sqlite",
+        "database_path": str(DATABASE_PATH),
     }
 
 
@@ -67,6 +78,8 @@ def health():
             "model": DEFAULT_MODEL,
             "available_models": AVAILABLE_MODELS,
             "web_search_provider": "tavily_or_duckduckgo",
+            "database": "sqlite",
+            "database_path": str(DATABASE_PATH),
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Health check failed: {exc}")
@@ -78,6 +91,52 @@ def list_models():
         "provider": "openai",
         "default": DEFAULT_MODEL,
         "available": AVAILABLE_MODELS,
+    }
+
+
+@router.get("/memory")
+def get_memory(user_id: Optional[str] = None, limit: int = 20):
+    return {
+        "user_id": normalize_user_id(user_id),
+        "memories": list_memories(user_id=user_id, limit=limit),
+    }
+
+
+@router.post("/memory", response_model=MemoryResponse)
+def create_memory(req: MemoryCreateRequest):
+    try:
+        memory_id = add_memory(
+            user_id=req.user_id,
+            content=req.content,
+            importance=req.importance,
+        )
+        memories = list_memories(user_id=req.user_id, limit=100)
+        for memory in memories:
+            if memory["id"] == memory_id:
+                return MemoryResponse(**memory)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    raise HTTPException(status_code=500, detail="Failed to create memory.")
+
+
+@router.delete("/memory/{memory_id}")
+def remove_memory(memory_id: int, user_id: Optional[str] = None):
+    deleted = delete_memory(user_id=user_id, memory_id=memory_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Memory not found.")
+    return {"deleted": True, "id": memory_id}
+
+
+@router.get("/messages")
+def get_messages(
+    user_id: Optional[str] = None,
+    chat_id: Optional[str] = None,
+    limit: int = 100,
+):
+    return {
+        "user_id": normalize_user_id(user_id),
+        "chat_id": chat_id,
+        "messages": list_messages(user_id=user_id, chat_id=chat_id, limit=limit),
     }
 
 
@@ -131,19 +190,49 @@ def put_ui_state_chats(payload: dict = Body(...), user_id: Optional[str] = None)
 @router.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
     try:
+        selected_model = req.model or DEFAULT_MODEL
+        user_message_id = add_message(
+            user_id=req.user_id,
+            chat_id=req.chat_id,
+            role="user",
+            content=req.message,
+            model=selected_model,
+        )
         result = handle_chat(
             user_message=req.message,
             history=req.history,
-            model=req.model or DEFAULT_MODEL,
+            model=selected_model,
             system_prompt=req.system_prompt,
             web_search_enabled=req.web_search_enabled,
             user_id=req.user_id,
         )
+        add_message(
+            user_id=req.user_id,
+            chat_id=req.chat_id,
+            role="assistant",
+            content=result["answer"],
+            model=selected_model,
+            mode=result.get("mode", "general"),
+        )
+
+        memory_content = maybe_extract_memory(req.message)
+        if memory_content:
+            try:
+                add_memory(
+                    user_id=req.user_id,
+                    content=memory_content,
+                    importance=3,
+                    source_message_id=user_message_id,
+                )
+            except ValueError:
+                pass
+
         return ChatResponse(
-            model=req.model or DEFAULT_MODEL,
+            model=selected_model,
             answer=result["answer"],
             mode=result.get("mode", "general"),
             done=True,
+            memories_used=result.get("memories_used", 0),
         )
     except HTTPException:
         raise

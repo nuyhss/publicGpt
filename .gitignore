@@ -21,6 +21,8 @@ marker_output/
 finetuning/output/
 finetuning/results/
 data/ui_state/
+data/*.sqlite3
+data/*.sqlite3-*
 data/uploads/*
 !data/uploads/.gitkeep
 data/temp/*
