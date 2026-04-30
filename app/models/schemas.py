@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     model: Optional[str] = None
     web_search_enabled: bool = True
     user_id: Optional[str] = None
+    conversation_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):

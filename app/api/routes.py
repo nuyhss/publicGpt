@@ -129,15 +129,16 @@ def put_ui_state_chats(payload: dict = Body(...), user_id: Optional[str] = None)
 
 
 @router.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest):
+async def chat(req: ChatRequest):
     try:
-        result = handle_chat(
+        result = await handle_chat(
             user_message=req.message,
             history=req.history,
             model=req.model or DEFAULT_MODEL,
             system_prompt=req.system_prompt,
             web_search_enabled=req.web_search_enabled,
             user_id=req.user_id,
+            conversation_id=req.conversation_id,
         )
         return ChatResponse(
             model=req.model or DEFAULT_MODEL,

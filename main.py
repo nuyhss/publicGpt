@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.openai_compat import router as openai_router
 from app.api.routes import router as main_router
 from app.api.upload_ui import router as ui_router
+from app.db.database import create_tables, init_db_path
 from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, STATIC_DIR, logger, setup_logging
 
 
@@ -17,6 +18,8 @@ from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, STATIC_DIR, lo
 async def lifespan(app: FastAPI):
     setup_logging()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    init_db_path(DATA_DIR)
+    await create_tables()
 
     logger.info("=" * 60)
     logger.info("PublicGPT API starting up")

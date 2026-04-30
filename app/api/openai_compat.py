@@ -51,12 +51,12 @@ def list_models():
 
 
 @router.post("/chat/completions")
-def chat_completions(req: OpenAIChatRequest):
+async def chat_completions(req: OpenAIChatRequest):
     try:
         system_prompt, history, user_message = _convert_openai_messages(req.messages)
         selected_model = req.model or DEFAULT_MODEL
 
-        result = handle_chat(
+        result = await handle_chat(
             user_message=user_message,
             history=history,
             model=selected_model,

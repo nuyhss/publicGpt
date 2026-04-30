@@ -25,6 +25,7 @@ data/uploads/*
 data/temp/*
 !data/temp/.gitkeep
 data/document_registry.json
+data/chat_memory.db
 *.gguf
 *.bin
 *.safetensors
