@@ -11,6 +11,7 @@ venv/
 # Runtime
 .run/
 server.pid
+server_launcher.pid
 server.out.log
 server.err.log
 

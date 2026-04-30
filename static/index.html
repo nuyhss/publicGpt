@@ -11,18 +11,12 @@
     :root {
       --bg-0: #fbfcfe;
       --bg-1: #eef4fb;
-      --panel: rgba(255, 255, 255, 0.94);
-      --panel-soft: rgba(248, 250, 253, 0.92);
-      --panel-strong: rgba(255, 255, 255, 0.98);
       --line: rgba(148, 163, 184, 0.26);
       --line-strong: rgba(148, 163, 184, 0.4);
       --text: #1f2937;
       --muted: #64748b;
-      --accent: #0f766e;
       --accent-2: #2563eb;
       --danger: #dc2626;
-      --user-bg: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.04));
-      --assistant-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.98));
       --shadow: 0 16px 36px rgba(148, 163, 184, 0.16);
     }
 
@@ -177,7 +171,9 @@
     .new-chat svg,
     .chat-actions button svg,
     .composer-icon svg,
-    .topbar-action svg {
+    .topbar-action svg,
+    .history-more svg,
+    .history-menu svg {
       width: 18px;
       height: 18px;
       stroke: currentColor;
@@ -206,7 +202,7 @@
       padding-right: 4px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
     }
 
     .history::-webkit-scrollbar,
@@ -220,10 +216,16 @@
       border-radius: 999px;
     }
 
+    .history-entry {
+      position: relative;
+      display: block;
+      border-radius: 12px;
+    }
+
     .history-item {
       width: 100%;
       text-align: left;
-      padding: 9px 10px;
+      padding: 9px 42px 9px 10px;
       border-radius: 12px;
       border: 1px solid transparent;
       background: transparent;
@@ -261,13 +263,70 @@
       text-overflow: ellipsis;
     }
 
-    .sidebar-footer {
-      margin-top: 10px;
-      padding: 12px 8px 2px;
-      border-top: 1px solid rgba(148, 163, 184, 0.18);
+    .history-more {
+      width: 32px;
+      height: 32px;
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+      z-index: 2;
+    }
+
+    .history-entry:hover .history-more,
+    .history-entry.menu-open .history-more,
+    .history-item.active + .history-more {
+      opacity: 1;
+    }
+
+    .history-more:hover {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .history-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 152px;
+      padding: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 38px rgba(148, 163, 184, 0.18);
+      z-index: 30;
+    }
+
+    .history-menu.upward {
+      top: auto;
+      bottom: calc(100% + 6px);
+    }
+
+    .history-menu button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: transparent;
+      color: var(--danger);
+      text-align: left;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-menu button:hover {
+      background: rgba(220, 38, 38, 0.08);
     }
 
     .main {
@@ -553,7 +612,7 @@
       border-radius: 28px;
       border: 1px solid rgba(148, 163, 184, 0.18);
       background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 14px 34px rgba(148, 163, 184, 0.16);
+      box-shadow: var(--shadow);
       overflow: hidden;
       backdrop-filter: blur(16px);
     }
@@ -738,11 +797,6 @@
 
       <div class="section-title">최근</div>
       <div class="history" id="historyList"></div>
-
-      <div class="sidebar-footer">
-        현재 세션 기반 채팅만 저장합니다.<br>
-        색감은 유지하고 대화 흐름에 집중한 레이아웃입니다.
-      </div>
     </aside>
 
     <main class="main">
@@ -786,7 +840,6 @@
           <div class="chat-scroll" id="messagesPanel">
             <div class="welcome" id="welcomeCard">
               <h3>무엇을 도와드릴까요?</h3>
-              <p>긴 대화도 계속 이어질 수 있도록, 대화 흐름에 집중한 ChatGPT 스타일 레이아웃으로 정리했습니다.</p>
             </div>
 
             <div class="message-list" id="messageList"></div>
@@ -833,10 +886,14 @@
 
   <script>
     const API = window.location.origin;
+    const EMPTY_CHAT_TITLE = "새 채팅";
+    const EMPTY_CHAT_PREVIEW = "새 대화를 시작해 보세요.";
+
     const state = {
       chats: {},
       currentChatId: null,
       loading: false,
+      openMenuChatId: null,
     };
 
     const historyList = document.getElementById("historyList");
@@ -855,21 +912,30 @@
       const id = "chat_" + Date.now();
       state.chats[id] = {
         id,
-        title: "새 채팅",
+        title: EMPTY_CHAT_TITLE,
         messages: [],
         createdAt: Date.now(),
       };
       state.currentChatId = id;
+      state.openMenuChatId = null;
       renderHistory();
       renderCurrentChat(true);
       saveChats();
+      return state.chats[id];
     }
 
     function ensureChat() {
       if (!state.currentChatId || !state.chats[state.currentChatId]) {
-        createChat();
+        return createChat();
       }
       return state.chats[state.currentChatId];
+    }
+
+    function getCurrentChat() {
+      if (!state.currentChatId) {
+        return null;
+      }
+      return state.chats[state.currentChatId] || null;
     }
 
     function escapeHtml(value) {
@@ -880,7 +946,37 @@
 
     function chatPreview(chat) {
       const last = chat.messages[chat.messages.length - 1];
-      return last ? last.content.slice(0, 42) : "새 대화를 시작해 보세요.";
+      return last ? last.content.slice(0, 42) : EMPTY_CHAT_PREVIEW;
+    }
+
+    function deleteChat(chatId) {
+      if (!state.chats[chatId]) {
+        return;
+      }
+
+      delete state.chats[chatId];
+      if (state.currentChatId === chatId) {
+        state.currentChatId = null;
+      }
+      state.openMenuChatId = null;
+
+      const ids = Object.keys(state.chats);
+      if (!ids.length) {
+        renderHistory();
+        renderCurrentChat(false);
+        saveChats();
+        return;
+      }
+
+      if (!state.currentChatId || !state.chats[state.currentChatId]) {
+        state.currentChatId = ids.sort(
+          (a, b) => (state.chats[b].createdAt || 0) - (state.chats[a].createdAt || 0)
+        )[0];
+      }
+
+      renderHistory();
+      renderCurrentChat(false);
+      saveChats();
     }
 
     function renderHistory() {
@@ -890,22 +986,72 @@
       if (!chats.length) {
         const empty = document.createElement("div");
         empty.className = "history-item";
-        empty.innerHTML = "<strong>채팅 없음</strong><span>새 채팅을 시작해 보세요.</span>";
+        empty.innerHTML = `<strong>채팅 없음</strong><span>${EMPTY_CHAT_PREVIEW}</span>`;
         historyList.appendChild(empty);
         return;
       }
 
-      chats.forEach((chat) => {
+      chats.forEach((chat, index) => {
+        const row = document.createElement("div");
+        row.className = "history-entry" + (state.openMenuChatId === chat.id ? " menu-open" : "");
+
         const item = document.createElement("button");
         item.type = "button";
         item.className = "history-item" + (chat.id === state.currentChatId ? " active" : "");
         item.innerHTML = `<strong>${escapeHtml(chat.title)}</strong><span>${escapeHtml(chatPreview(chat))}</span>`;
         item.addEventListener("click", () => {
           state.currentChatId = chat.id;
+          state.openMenuChatId = null;
           renderHistory();
           renderCurrentChat(false);
         });
-        historyList.appendChild(item);
+
+        const moreButton = document.createElement("button");
+        moreButton.type = "button";
+        moreButton.className = "history-more";
+        moreButton.setAttribute("aria-label", "Chat actions");
+        moreButton.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <circle cx="5" cy="12" r="1.5"></circle>
+            <circle cx="12" cy="12" r="1.5"></circle>
+            <circle cx="19" cy="12" r="1.5"></circle>
+          </svg>
+        `;
+        moreButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          state.openMenuChatId = state.openMenuChatId === chat.id ? null : chat.id;
+          renderHistory();
+        });
+
+        row.appendChild(item);
+        row.appendChild(moreButton);
+
+        if (state.openMenuChatId === chat.id) {
+          const menu = document.createElement("div");
+          const shouldOpenUpward = index >= chats.length - 1;
+          menu.className = "history-menu" + (shouldOpenUpward ? " upward" : "");
+          menu.innerHTML = `
+            <button type="button" data-action="delete">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4h8v2"></path>
+                <path d="M19 6l-1 14H6L5 6"></path>
+                <path d="M10 11v6"></path>
+                <path d="M14 11v6"></path>
+              </svg>
+              <span>Delete chat</span>
+            </button>
+          `;
+          menu.addEventListener("click", (event) => {
+            event.stopPropagation();
+          });
+          menu.querySelector("[data-action='delete']").addEventListener("click", () => {
+            deleteChat(chat.id);
+          });
+          row.appendChild(menu);
+        }
+
+        historyList.appendChild(row);
       });
     }
 
@@ -943,9 +1089,7 @@
         article.className = "message " + message.role;
 
         if (message.role === "user") {
-          article.innerHTML = `
-            <div class="user-bubble">${escapeHtml(message.content)}</div>
-          `;
+          article.innerHTML = `<div class="user-bubble">${escapeHtml(message.content)}</div>`;
         } else {
           const mode = message.mode ? `<div class="assistant-mode">${escapeHtml(message.mode)}</div>` : "";
           article.innerHTML = `
@@ -966,7 +1110,14 @@
     }
 
     function renderCurrentChat(scrollToEnd) {
-      const chat = ensureChat();
+      const chat = getCurrentChat();
+      if (!chat) {
+        chatTitle.textContent = "PublicGPT";
+        renderMessages([]);
+        welcomeCard.style.display = "block";
+        return;
+      }
+
       chatTitle.textContent = chat.title;
       renderMessages(chat.messages);
       welcomeCard.style.display = chat.messages.length ? "none" : "block";
@@ -1024,7 +1175,9 @@
 
       const ids = Object.keys(state.chats);
       if (!ids.length) {
-        createChat();
+        state.currentChatId = null;
+        renderHistory();
+        renderCurrentChat(false);
         return;
       }
 
@@ -1066,11 +1219,12 @@
       }
 
       const chat = ensureChat();
-      if (chat.title === "새 채팅") {
+      if (chat.title === EMPTY_CHAT_TITLE) {
         chat.title = text.length > 20 ? text.slice(0, 20) + "..." : text;
       }
 
       chat.messages.push({ role: "user", content: text, mode: "" });
+      state.openMenuChatId = null;
       renderHistory();
       renderCurrentChat(true);
       saveChats();
@@ -1128,6 +1282,12 @@
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
+      }
+    });
+    document.addEventListener("click", () => {
+      if (state.openMenuChatId !== null) {
+        state.openMenuChatId = null;
+        renderHistory();
       }
     });
 

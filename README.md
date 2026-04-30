@@ -5,12 +5,12 @@ OpenAI API 기반 채팅 전용 FastAPI 프로젝트입니다.
 ## 포함 기능
 
 - 일반 채팅 UI
-- 최근 대화 히스토리 전달
+- 최근 채팅 히스토리 저장
 - OpenAI 모델 선택
-- 선택적 웹 검색 보강
+- 선택형 웹 검색 보강
 - OpenAI 호환 `/v1/chat/completions`
 
-## 제거된 기능
+## 제거한 기능
 
 - 문서 업로드
 - 문서 보관함
@@ -18,30 +18,44 @@ OpenAI API 기반 채팅 전용 FastAPI 프로젝트입니다.
 - 벡터 문서 검색 UI
 - Ollama 실행 경로
 
-## 실행
+## 실행 준비
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-환경 변수 예시:
+`.env`에 OpenAI 설정을 넣어둔 뒤 서버를 실행합니다.
 
-```bash
-set OPENAI_API_KEY=your_key_here
-set OPENAI_MODEL=gpt-5.5
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+## 서버 실행
+
+가장 안정적인 실행 방법:
+
+```powershell
+.\start_server.ps1
 ```
 
-접속:
+새 창으로 바로 띄우려면:
 
-- `http://127.0.0.1:8000/ui`
-- `http://127.0.0.1:8000/docs`
+```bat
+start_server.bat
+```
 
-## 다음 단계
+직접 명령으로 실행하려면:
 
-1. 채팅 원문 DB 저장
-2. 세션 요약 저장
-3. 과거 대화 벡터 검색
-4. 최근 대화 + 요약 + 검색 결과 조합 프롬프트
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+## 서버 중지
+
+```powershell
+.\stop_server.ps1
+```
+
+## 접속 주소
+
+- UI: `http://127.0.0.1:8000/ui`
+- Health: `http://127.0.0.1:8000/health`
+- Docs: `http://127.0.0.1:8000/docs`
