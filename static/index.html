@@ -294,9 +294,7 @@
     }
 
     .history-menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
+      position: fixed;
       min-width: 152px;
       padding: 6px;
       border: 1px solid rgba(148, 163, 184, 0.18);
@@ -306,9 +304,8 @@
       z-index: 30;
     }
 
-    .history-menu.upward {
-      top: auto;
-      bottom: calc(100% + 6px);
+    .history-menu.hidden {
+      display: none;
     }
 
     .history-menu button {
@@ -884,6 +881,8 @@
     </main>
   </div>
 
+  <div class="history-menu hidden" id="historyMenuOverlay"></div>
+
   <script>
     const API = window.location.origin;
     const EMPTY_CHAT_TITLE = "새 채팅";
@@ -894,6 +893,7 @@
       currentChatId: null,
       loading: false,
       openMenuChatId: null,
+      openMenuRect: null,
     };
 
     const historyList = document.getElementById("historyList");
@@ -907,6 +907,7 @@
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const newChatBtn = document.getElementById("newChatBtn");
+    const historyMenuOverlay = document.getElementById("historyMenuOverlay");
 
     function createChat() {
       const id = "chat_" + Date.now();
@@ -918,7 +919,9 @@
       };
       state.currentChatId = id;
       state.openMenuChatId = null;
+      state.openMenuRect = null;
       renderHistory();
+      renderHistoryMenu();
       renderCurrentChat(true);
       saveChats();
       return state.chats[id];
@@ -959,10 +962,12 @@
         state.currentChatId = null;
       }
       state.openMenuChatId = null;
+      state.openMenuRect = null;
 
       const ids = Object.keys(state.chats);
       if (!ids.length) {
         renderHistory();
+        renderHistoryMenu();
         renderCurrentChat(false);
         saveChats();
         return;
@@ -975,8 +980,45 @@
       }
 
       renderHistory();
+      renderHistoryMenu();
       renderCurrentChat(false);
       saveChats();
+    }
+
+    function renderHistoryMenu() {
+      if (!state.openMenuChatId || !state.openMenuRect || !state.chats[state.openMenuChatId]) {
+        historyMenuOverlay.className = "history-menu hidden";
+        historyMenuOverlay.innerHTML = "";
+        return;
+      }
+
+      const rect = state.openMenuRect;
+      const menuWidth = 152;
+      const menuHeight = 56;
+      const gap = 6;
+      const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
+      const openUpward = rect.bottom + gap + menuHeight > window.innerHeight && rect.top - gap - menuHeight > 12;
+      const top = openUpward ? rect.top - menuHeight - gap : rect.bottom + gap;
+
+      historyMenuOverlay.className = "history-menu";
+      historyMenuOverlay.style.left = `${left}px`;
+      historyMenuOverlay.style.top = `${Math.max(12, top)}px`;
+      historyMenuOverlay.innerHTML = `
+        <button type="button" data-action="delete">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 6h18"></path>
+            <path d="M8 6V4h8v2"></path>
+            <path d="M19 6l-1 14H6L5 6"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+          </svg>
+          <span>Delete chat</span>
+        </button>
+      `;
+      historyMenuOverlay.querySelector("[data-action='delete']").addEventListener("click", (event) => {
+        event.stopPropagation();
+        deleteChat(state.openMenuChatId);
+      });
     }
 
     function renderHistory() {
@@ -984,10 +1026,6 @@
       historyList.innerHTML = "";
 
       if (!chats.length) {
-        const empty = document.createElement("div");
-        empty.className = "history-item";
-        empty.innerHTML = `<strong>채팅 없음</strong><span>${EMPTY_CHAT_PREVIEW}</span>`;
-        historyList.appendChild(empty);
         return;
       }
 
@@ -1019,37 +1057,15 @@
         `;
         moreButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          state.openMenuChatId = state.openMenuChatId === chat.id ? null : chat.id;
+          const sameMenu = state.openMenuChatId === chat.id;
+          state.openMenuChatId = sameMenu ? null : chat.id;
+          state.openMenuRect = sameMenu ? null : moreButton.getBoundingClientRect();
           renderHistory();
+          renderHistoryMenu();
         });
 
         row.appendChild(item);
         row.appendChild(moreButton);
-
-        if (state.openMenuChatId === chat.id) {
-          const menu = document.createElement("div");
-          const shouldOpenUpward = index >= chats.length - 1;
-          menu.className = "history-menu" + (shouldOpenUpward ? " upward" : "");
-          menu.innerHTML = `
-            <button type="button" data-action="delete">
-              <svg viewBox="0 0 24 24">
-                <path d="M3 6h18"></path>
-                <path d="M8 6V4h8v2"></path>
-                <path d="M19 6l-1 14H6L5 6"></path>
-                <path d="M10 11v6"></path>
-                <path d="M14 11v6"></path>
-              </svg>
-              <span>Delete chat</span>
-            </button>
-          `;
-          menu.addEventListener("click", (event) => {
-            event.stopPropagation();
-          });
-          menu.querySelector("[data-action='delete']").addEventListener("click", () => {
-            deleteChat(chat.id);
-          });
-          row.appendChild(menu);
-        }
 
         historyList.appendChild(row);
       });
@@ -1225,7 +1241,9 @@
 
       chat.messages.push({ role: "user", content: text, mode: "" });
       state.openMenuChatId = null;
+      state.openMenuRect = null;
       renderHistory();
+      renderHistoryMenu();
       renderCurrentChat(true);
       saveChats();
 
@@ -1287,7 +1305,17 @@
     document.addEventListener("click", () => {
       if (state.openMenuChatId !== null) {
         state.openMenuChatId = null;
+        state.openMenuRect = null;
         renderHistory();
+        renderHistoryMenu();
+      }
+    });
+    window.addEventListener("resize", () => {
+      if (state.openMenuChatId !== null) {
+        state.openMenuChatId = null;
+        state.openMenuRect = null;
+        renderHistory();
+        renderHistoryMenu();
       }
     });
 
