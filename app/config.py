@@ -14,6 +14,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = Path(os.getenv("DATA_DIR", BASE_DIR / "data"))
 STATIC_DIR = BASE_DIR / "static"
 
+
+def _path_from_env(name: str, default: Path) -> Path:
+    raw = os.getenv(name, "").strip()
+    return Path(raw) if raw else default
+
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.5")
@@ -39,6 +44,18 @@ LLM_QUEUE_TIMEOUT = int(os.getenv("LLM_QUEUE_TIMEOUT", "240"))
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 DUCKDUCKGO_MAX_RESULTS = max(1, int(os.getenv("DUCKDUCKGO_MAX_RESULTS", "5")))
 DUCKDUCKGO_REGION = os.getenv("DUCKDUCKGO_REGION", "kr-kr")
+OCR_LANG = os.getenv("OCR_LANG", "kor+eng").strip() or "kor+eng"
+TESSERACT_CMD = os.getenv("TESSERACT_CMD", "").strip()
+OCR_MAX_FILE_SIZE = max(1, int(os.getenv("OCR_MAX_FILE_SIZE", str(10 * 1024 * 1024))))
+
+# Long-term memory
+MEMORY_ENABLED = os.getenv("MEMORY_ENABLED", "true").lower() == "true"
+MEMORY_DB_PATH = _path_from_env("MEMORY_DB_PATH", DATA_DIR / "memory.db")
+MEMORY_CHROMA_PATH = _path_from_env("MEMORY_CHROMA_PATH", DATA_DIR / "chroma")
+EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "paraphrase-multilingual-MiniLM-L12-v2")
+MEMORY_TOP_K = int(os.getenv("MEMORY_TOP_K", "4"))
+SUMMARY_TRIGGER_TURNS = int(os.getenv("SUMMARY_TRIGGER_TURNS", "20"))
+SUMMARY_MAX_TOKENS = int(os.getenv("SUMMARY_MAX_TOKENS", "256"))
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 

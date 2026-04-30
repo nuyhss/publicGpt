@@ -10,10 +10,11 @@ from pathlib import Path
 from threading import Lock
 from typing import Optional
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, File, HTTPException, UploadFile
 
 from app.chat.handlers import handle_chat
-from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL
+from app.config import AVAILABLE_MODELS, DATA_DIR, DEFAULT_MODEL, OCR_MAX_FILE_SIZE
+from app.core.ocr import extract_ocr_text
 from app.core.llm import check_llm_health
 from app.models.schemas import ChatRequest, ChatResponse
 
@@ -138,16 +139,50 @@ async def chat(req: ChatRequest):
             system_prompt=req.system_prompt,
             web_search_enabled=req.web_search_enabled,
             user_id=req.user_id,
+            session_id=req.session_id or req.conversation_id,
             conversation_id=req.conversation_id,
+            attachment_text=req.attachment_text,
+            attachment_name=req.attachment_name,
         )
         return ChatResponse(
             model=req.model or DEFAULT_MODEL,
             answer=result["answer"],
             mode=result.get("mode", "general"),
             done=True,
+            session_id=result.get("session_id"),
         )
     except HTTPException:
         raise
     except Exception as exc:
         logger.exception("Chat failed")
         raise HTTPException(status_code=500, detail=f"Chat failed: {exc}")
+
+
+@router.post("/ocr")
+async def ocr(file: UploadFile = File(...)):
+    content_type = (file.content_type or "").lower()
+    if not content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image uploads are supported.")
+
+    image_bytes = await file.read()
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(image_bytes) > OCR_MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="Image file is too large.")
+
+    try:
+        text = await extract_ocr_text(image_bytes)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("OCR failed")
+        raise HTTPException(status_code=500, detail=f"OCR failed: {exc}")
+
+    return {
+        "filename": file.filename or "",
+        "text": text,
+    }

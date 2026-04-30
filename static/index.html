@@ -4,10 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PublicGPT</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: "Gong Gothic Light";
+      src: url("/static/GongGothicLight.ttf") format("truetype");
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
       --bg-0: #fbfcfe;
       --bg-1: #eef4fb;
@@ -35,7 +40,7 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-      font-family: "IBM Plex Sans KR", sans-serif;
+      font-family: "Gong Gothic Light", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
@@ -92,7 +97,7 @@
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       min-width: 0;
     }
 
@@ -104,7 +109,7 @@
     }
 
     .brand-label {
-      font-family: "Space Grotesk", sans-serif;
+      font-family: "Gong Gothic Light", sans-serif;
       font-weight: 700;
       font-size: 18px;
       letter-spacing: -0.04em;
@@ -214,7 +219,16 @@
     }
 
     .history-item {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
       width: 100%;
+      padding: 4px 0;
+    }
+
+    .history-item-main {
+      flex: 1;
+      min-width: 0;
       text-align: left;
       padding: 9px 10px;
       border-radius: 12px;
@@ -225,17 +239,17 @@
       transition: background 0.18s ease, border-color 0.18s ease;
     }
 
-    .history-item:hover {
+    .history-item-main:hover {
       background: rgba(255, 255, 255, 0.8);
       border-color: rgba(148, 163, 184, 0.18);
     }
 
-    .history-item.active {
+    .history-item-main.active {
       background: rgba(255, 255, 255, 0.96);
       border-color: rgba(148, 163, 184, 0.28);
     }
 
-    .history-item strong {
+    .history-item-main strong {
       display: block;
       font-size: 14px;
       font-weight: 500;
@@ -245,13 +259,42 @@
       text-overflow: ellipsis;
     }
 
-    .history-item span {
+    .history-item-main span {
       display: block;
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .history-delete {
+      width: 32px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .history-delete:hover {
+      background: rgba(220, 38, 38, 0.08);
+      border-color: rgba(220, 38, 38, 0.14);
+      color: var(--danger);
+    }
+
+    .history-delete svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .sidebar-footer {
@@ -369,7 +412,7 @@
 
     .welcome h3 {
       margin: 0 0 10px;
-      font-family: "Space Grotesk", sans-serif;
+      font-family: "Gong Gothic Light", sans-serif;
       font-size: 32px;
       letter-spacing: -0.04em;
     }
@@ -422,7 +465,7 @@
       background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(37, 99, 235, 0.12));
       border: 1px solid rgba(37, 99, 235, 0.16);
       color: var(--accent-2);
-      font-family: "Space Grotesk", sans-serif;
+      font-family: "Gong Gothic Light", sans-serif;
       font-size: 11px;
       font-weight: 700;
     }
@@ -471,6 +514,9 @@
     }
 
     .user-bubble {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       max-width: min(78%, 460px);
       padding: 12px 16px;
       border-radius: 22px;
@@ -479,6 +525,35 @@
       box-shadow: 0 8px 18px rgba(148, 163, 184, 0.12);
       font-size: 15px;
       line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .user-bubble.has-image {
+      width: min(100%, 360px);
+      max-width: min(72%, 360px);
+      padding: 10px;
+    }
+
+    .user-image {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(248, 250, 253, 0.92);
+    }
+
+    .user-image-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .user-text {
       white-space: pre-wrap;
       word-break: break-word;
     }
@@ -503,7 +578,7 @@
       background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(37, 99, 235, 0.12));
       border: 1px solid rgba(37, 99, 235, 0.16);
       color: var(--accent-2);
-      font-family: "Space Grotesk", sans-serif;
+      font-family: "Gong Gothic Light", sans-serif;
       font-size: 11px;
       font-weight: 700;
     }
@@ -549,6 +624,60 @@
       box-shadow: 0 14px 34px rgba(148, 163, 184, 0.16);
       overflow: hidden;
       backdrop-filter: blur(16px);
+    }
+
+    .attachment-status {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .attachment-status.show {
+      display: flex;
+    }
+
+    .attachment-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      color: var(--accent-2);
+    }
+
+    .attachment-pill span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .attachment-preview {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      flex-shrink: 0;
+    }
+
+    .attachment-clear {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+
+    .attachment-clear:hover {
+      background: rgba(148, 163, 184, 0.12);
     }
 
     .composer-main {
@@ -689,13 +818,7 @@
     <aside class="sidebar">
       <div class="sidebar-top">
         <div class="brand">
-          <svg class="brand-logo" viewBox="0 0 180 95" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SWF logo">
-            <path d="M6 12C34 13 52 24 66 48C80 72 103 83 145 81C120 93 87 91 63 79C39 67 28 42 18 27C12 19 9 15 6 12Z" fill="#0E6DC1"/>
-            <path d="M37 8C64 12 82 28 98 49C113 69 133 79 173 79C159 86 140 89 119 87C86 84 63 66 47 42C38 29 31 18 20 10C26 8 31 7 37 8Z" fill="#0E6DC1"/>
-            <circle cx="121" cy="36" r="27" fill="#16B394"/>
-            <text x="121" y="44" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">SWF</text>
-            <circle cx="170" cy="36" r="8" fill="#0E6DC1"/>
-          </svg>
+          <img class="brand-logo" src="/static/swf-logo.svg" alt="PublicGPT logo">
           <div class="brand-label">PublicGPT</div>
         </div>
         <button class="icon-button" type="button" aria-label="Sidebar menu">
@@ -802,13 +925,21 @@
 
           <div class="composer-wrap">
             <div class="composer">
+              <div class="attachment-status" id="attachmentStatus">
+                <div class="attachment-pill">
+                  <img class="attachment-preview" id="attachmentPreview" alt="Attached preview">
+                  <span id="attachmentName"></span>
+                </div>
+                <button class="attachment-clear" id="clearAttachmentBtn" type="button">제거</button>
+              </div>
               <div class="composer-main">
-                <button class="composer-icon" type="button" aria-label="Add">
+                <button class="composer-icon" id="attachBtn" type="button" aria-label="Attach image for OCR">
                   <svg viewBox="0 0 24 24">
                     <path d="M12 5v14"></path>
                     <path d="M5 12h14"></path>
                   </svg>
                 </button>
+                <input id="ocrFileInput" type="file" accept="image/*" hidden>
                 <textarea id="messageInput" placeholder="무엇이든 물어보세요"></textarea>
                 <button class="composer-icon" type="button" aria-label="Voice">
                   <svg viewBox="0 0 24 24">
@@ -849,6 +980,14 @@
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
     const newChatBtn = document.getElementById("newChatBtn");
+    const attachBtn = document.getElementById("attachBtn");
+    const ocrFileInput = document.getElementById("ocrFileInput");
+    const attachmentStatus = document.getElementById("attachmentStatus");
+    const attachmentPreview = document.getElementById("attachmentPreview");
+    const attachmentName = document.getElementById("attachmentName");
+    const clearAttachmentBtn = document.getElementById("clearAttachmentBtn");
+    let pendingImageFile = null;
+    let pendingImagePreviewUrl = "";
 
     function createChat() {
       const id = "chat_" + Date.now();
@@ -882,6 +1021,34 @@
       return last ? last.content.slice(0, 42) : "새 대화를 시작해 보세요.";
     }
 
+    function selectFallbackChat() {
+      const ids = Object.keys(state.chats);
+      if (!ids.length) {
+        createChat();
+        return;
+      }
+      state.currentChatId = ids.sort(
+        (a, b) => (state.chats[b].createdAt || 0) - (state.chats[a].createdAt || 0)
+      )[0];
+      renderHistory();
+      renderCurrentChat(false);
+    }
+
+    function deleteChat(chatId) {
+      if (!state.chats[chatId]) {
+        return;
+      }
+      delete state.chats[chatId];
+
+      if (state.currentChatId === chatId) {
+        selectFallbackChat();
+      } else {
+        renderHistory();
+      }
+
+      saveChats();
+    }
+
     function renderHistory() {
       const chats = Object.values(state.chats).sort((a, b) => b.createdAt - a.createdAt);
       historyList.innerHTML = "";
@@ -889,22 +1056,43 @@
       if (!chats.length) {
         const empty = document.createElement("div");
         empty.className = "history-item";
-        empty.innerHTML = "<strong>채팅 없음</strong><span>새 채팅을 시작해 보세요.</span>";
+        empty.innerHTML = '<div class="history-item-main"><strong>채팅 없음</strong><span>새 채팅을 시작해 보세요.</span></div>';
         historyList.appendChild(empty);
         return;
       }
 
       chats.forEach((chat) => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+
         const item = document.createElement("button");
         item.type = "button";
-        item.className = "history-item" + (chat.id === state.currentChatId ? " active" : "");
+        item.className = "history-item-main" + (chat.id === state.currentChatId ? " active" : "");
         item.innerHTML = `<strong>${escapeHtml(chat.title)}</strong><span>${escapeHtml(chatPreview(chat))}</span>`;
         item.addEventListener("click", () => {
           state.currentChatId = chat.id;
           renderHistory();
           renderCurrentChat(false);
         });
-        historyList.appendChild(item);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "history-delete";
+        deleteBtn.setAttribute("aria-label", `${chat.title} 삭제`);
+        deleteBtn.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+            <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path>
+            <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
+          </svg>
+        `;
+        deleteBtn.addEventListener("click", () => deleteChat(chat.id));
+
+        row.appendChild(item);
+        row.appendChild(deleteBtn);
+        historyList.appendChild(row);
       });
     }
 
@@ -942,8 +1130,21 @@
         article.className = "message " + message.role;
 
         if (message.role === "user") {
+          const imageBlock = message.imagePreviewUrl
+            ? `<img class="user-image" src="${escapeHtml(message.imagePreviewUrl)}" alt="${escapeHtml(message.imageName || "attached image")}">`
+            : "";
+          const imageLabel = message.imageName
+            ? `<span class="user-image-label">첨부 이미지: ${escapeHtml(message.imageName)}</span>`
+            : "";
+          const textBlock = message.content
+            ? `<div class="user-text">${escapeHtml(message.content)}</div>`
+            : "";
           article.innerHTML = `
-            <div class="user-bubble">${escapeHtml(message.content)}</div>
+            <div class="user-bubble${message.imagePreviewUrl ? " has-image" : ""}">
+              ${imageBlock}
+              ${imageLabel}
+              ${textBlock}
+            </div>
           `;
         } else {
           const mode = message.mode ? `<div class="assistant-mode">${escapeHtml(message.mode)}</div>` : "";
@@ -983,6 +1184,115 @@
     function autoResizeTextarea() {
       messageInput.style.height = "0px";
       messageInput.style.height = Math.min(messageInput.scrollHeight, 220) + "px";
+    }
+
+    function revokeImagePreview(url) {
+      if (url && url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    function serializeChatsForSave() {
+      const serialized = {};
+      Object.entries(state.chats).forEach(([chatId, chat]) => {
+        serialized[chatId] = {
+          ...chat,
+          messages: (chat.messages || []).map((message) => {
+            const next = { ...message };
+            delete next.imagePreviewUrl;
+            return next;
+          }),
+        };
+      });
+      return serialized;
+    }
+
+    function setPendingImage(file) {
+      revokeImagePreview(pendingImagePreviewUrl);
+      pendingImageFile = file;
+      pendingImagePreviewUrl = "";
+      if (!file) {
+        attachmentStatus.classList.remove("show");
+        attachmentPreview.removeAttribute("src");
+        attachmentName.textContent = "";
+        attachBtn.title = "";
+        return;
+      }
+      pendingImagePreviewUrl = URL.createObjectURL(file);
+      attachmentStatus.classList.add("show");
+      attachmentPreview.src = pendingImagePreviewUrl;
+      attachmentName.textContent = file.name || "붙여넣은 이미지";
+      attachBtn.title = "이미지 첨부됨";
+    }
+
+    function clearPendingImage(revokePreview = true) {
+      if (revokePreview) {
+        revokeImagePreview(pendingImagePreviewUrl);
+      }
+      pendingImageFile = null;
+      pendingImagePreviewUrl = "";
+      ocrFileInput.value = "";
+      attachmentStatus.classList.remove("show");
+      attachmentPreview.removeAttribute("src");
+      attachmentName.textContent = "";
+      attachBtn.title = "";
+    }
+
+    async function runOcr(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(API + "/ocr", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.detail || "OCR request failed");
+      }
+      return payload.text || "";
+    }
+
+    async function processOcrFile(file) {
+      if (!file) {
+        return;
+      }
+
+      const previousTitle = attachBtn.title;
+      attachBtn.disabled = true;
+      attachBtn.title = "OCR 처리 중";
+
+      try {
+        const text = await runOcr(file);
+        return (text || "").trim();
+      } catch (error) {
+        throw error;
+      } finally {
+        attachBtn.disabled = false;
+        attachBtn.title = previousTitle;
+      }
+    }
+
+    function handleOcrSelection(event) {
+      const file = event.target.files && event.target.files[0];
+      setPendingImage(file);
+    }
+
+    function handleImagePaste(event) {
+      const items = Array.from(event.clipboardData?.items || []);
+      const imageItem = items.find((item) => item.kind === "file" && item.type.startsWith("image/"));
+      if (!imageItem) {
+        return;
+      }
+
+      const file = imageItem.getAsFile();
+      if (!file) {
+        return;
+      }
+
+      event.preventDefault();
+      setPendingImage(file);
     }
 
     async function loadModels() {
@@ -1040,7 +1350,7 @@
         await fetch(API + "/ui-state/chats", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chats: state.chats }),
+          body: JSON.stringify({ chats: serializeChatsForSave() }),
         });
       } catch (error) {
         console.warn("Failed to save chats", error);
@@ -1060,37 +1370,52 @@
       }
 
       const text = messageInput.value.trim();
-      if (!text) {
+      if (!text && !pendingImageFile) {
         return;
       }
 
+      const pendingFile = pendingImageFile;
+      const pendingPreviewUrl = pendingImagePreviewUrl;
+      const userDisplayText = text || "[이미지 첨부]";
+      const requestMessage = text || "첨부한 이미지의 텍스트를 읽고 핵심 내용을 설명해줘.";
+
       const chat = ensureChat();
       if (chat.title === "새 채팅") {
-        chat.title = text.length > 20 ? text.slice(0, 20) + "..." : text;
+        chat.title = userDisplayText.length > 20 ? userDisplayText.slice(0, 20) + "..." : userDisplayText;
       }
 
-      chat.messages.push({ role: "user", content: text, mode: "" });
+      chat.messages.push({
+        role: "user",
+        content: pendingFile ? `${userDisplayText}\n\n[이미지 첨부: ${pendingFile.name || "clipboard-image"}]` : userDisplayText,
+        mode: "",
+        imageName: pendingFile ? (pendingFile.name || "clipboard-image") : "",
+        imagePreviewUrl: pendingFile ? pendingPreviewUrl : "",
+      });
       renderHistory();
       renderCurrentChat(true);
       saveChats();
 
       messageInput.value = "";
       autoResizeTextarea();
+      clearPendingImage(false);
       state.loading = true;
       sendBtn.disabled = true;
       typingRow.classList.add("show");
       scrollMessagesToBottom();
 
       try {
+        const attachmentText = pendingFile ? await processOcrFile(pendingFile) : "";
         const response = await fetch(API + "/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: text,
+            message: requestMessage,
             history: buildHistory(chat.messages.slice(0, -1)),
             model: modelSelect.value,
             web_search_enabled: webSearchToggle.checked,
             conversation_id: chat.id,
+            attachment_text: attachmentText,
+            attachment_name: pendingFile ? (pendingFile.name || "clipboard-image") : null,
           }),
         });
 
@@ -1122,8 +1447,12 @@
     }
 
     newChatBtn.addEventListener("click", createChat);
+    attachBtn.addEventListener("click", () => ocrFileInput.click());
+    ocrFileInput.addEventListener("change", handleOcrSelection);
+    clearAttachmentBtn.addEventListener("click", clearPendingImage);
     sendBtn.addEventListener("click", sendMessage);
     messageInput.addEventListener("input", autoResizeTextarea);
+    messageInput.addEventListener("paste", handleImagePaste);
     messageInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();

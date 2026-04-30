@@ -8,10 +8,10 @@ project can focus on a clean public-chatbot experience.
 from __future__ import annotations
 
 import logging
+import uuid
 from typing import Any, Dict, List, Optional
 
-from app.config import DEFAULT_MODEL
-from app.db.repository import load_messages, save_message
+from app.config import DEFAULT_MODEL, MEMORY_CHROMA_PATH, MEMORY_DB_PATH, MEMORY_ENABLED, MEMORY_TOP_K
 from app.core.llm import call_llm, get_response_text
 from app.core.web_search import format_search_results, search_web
 from app.models.schemas import Message
@@ -63,32 +63,30 @@ def _might_need_web_search(text: str) -> bool:
     return any(keyword in lowered for keyword in WEB_SEARCH_HINTS)
 
 
-def _deduplicate_db_history(db_history: List[Message], history: List[Message]) -> List[Message]:
-    if not db_history:
-        return []
-    seen = {(item.role, item.content) for item in history}
-    return [item for item in db_history if (item.role, item.content) not in seen]
-
-
 def _build_prompt(
     user_message: str,
-    long_term_memory: List[Message],
     history: List[Message],
     web_context: str = "",
     system_prompt: Optional[str] = None,
+    long_term_context: str = "",
+    attachment_text: str = "",
+    attachment_name: str = "",
 ) -> str:
     parts = [f"[System]\n{system_prompt or DEFAULT_SYSTEM_PROMPT}"]
 
-    memory_text = _format_history(long_term_memory, max_turns=40)
-    if memory_text:
-        parts.append(f"[Long-term memory]\n{memory_text}")
+    if long_term_context:
+        parts.append(f"[과거 대화 기억]\n{long_term_context}")
 
     history_text = _format_history(history)
     if history_text:
-        parts.append(f"[Recent conversation]\n{history_text}")
+        parts.append(f"[Conversation history]\n{history_text}")
+
+    if attachment_text:
+        title = attachment_name or "attached image"
+        parts.append(f"[Attached image OCR: {title}]\n{attachment_text}")
 
     if web_context:
-        parts.append(f"[Web results]\n{web_context}")
+        parts.append(f"[Web search results]\n{web_context}")
 
     parts.append(f"[User message]\n{user_message}")
     return "\n\n".join(parts)
@@ -107,14 +105,16 @@ async def handle_chat(
     system_prompt: Optional[str] = None,
     web_search_enabled: bool = True,
     user_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     conversation_id: Optional[str] = None,
+    attachment_text: Optional[str] = None,
+    attachment_name: Optional[str] = None,
 ) -> Dict[str, Any]:
-    del user_id
-
     history = history or []
     selected_model = model or DEFAULT_MODEL
+    session_id = session_id or conversation_id or str(uuid.uuid4())
     web_context = ""
-    db_history: List[Message] = []
+    long_term_context = ""
 
     if web_search_enabled and _might_need_web_search(user_message):
         try:
@@ -122,38 +122,50 @@ async def handle_chat(
         except Exception as exc:
             logger.debug("Web search skipped after failure: %s", exc)
 
-    if conversation_id:
+    if MEMORY_ENABLED and user_id:
         try:
-            db_history = await load_messages(conversation_id, limit=40)
-        except Exception as exc:
-            logger.warning("Failed to load conversation memory (%s): %s", conversation_id, exc)
-            db_history = []
+            from app.memory.memory_handler import MemoryHandler
 
-    db_history = _deduplicate_db_history(db_history, history)
+            memory = MemoryHandler(MEMORY_DB_PATH, MEMORY_CHROMA_PATH)
+            long_term_context = memory.get_long_term_context(
+                user_id=user_id,
+                current_session_id=session_id,
+                current_message=user_message,
+                n_results=MEMORY_TOP_K,
+            )
+        except Exception as exc:
+            logger.warning("Memory retrieval failed: %s", exc)
 
     prompt = _build_prompt(
         user_message=user_message,
-        long_term_memory=db_history,
         history=history,
         web_context=web_context,
         system_prompt=system_prompt,
+        long_term_context=long_term_context,
+        attachment_text=attachment_text or "",
+        attachment_name=attachment_name or "",
     )
 
     result = call_llm(prompt, model=selected_model)
     answer = _strip_markdown_emphasis(get_response_text(result))
 
-    if conversation_id:
+    if MEMORY_ENABLED and user_id:
         try:
-            await save_message(conversation_id, "user", user_message)
+            from app.memory.memory_handler import MemoryHandler
+
+            memory = MemoryHandler(MEMORY_DB_PATH, MEMORY_CHROMA_PATH)
+            memory.save_turn(
+                user_id=user_id,
+                session_id=session_id,
+                user_message=user_message,
+                assistant_reply=answer,
+            )
         except Exception as exc:
-            logger.warning("Failed to save user message (%s): %s", conversation_id, exc)
-        try:
-            await save_message(conversation_id, "assistant", answer)
-        except Exception as exc:
-            logger.warning("Failed to save assistant message (%s): %s", conversation_id, exc)
+            logger.warning("Memory save failed: %s", exc)
 
     return {
         "answer": answer,
         "mode": "web_search" if web_context else "general",
         "sources": [],
+        "session_id": session_id,
     }
