@@ -171,6 +171,44 @@
       font-size: 14px;
     }
 
+    .nav-item-button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      justify-content: space-between;
+      text-align: left;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .nav-item-button:hover,
+    .nav-item-button.active {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text);
+    }
+
+    .nav-item-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .nav-chevron {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.18s ease;
+    }
+
+    .nav-item-button.collapsed .nav-chevron {
+      transform: rotate(-90deg);
+    }
+
     .nav-item svg,
     .new-chat svg,
     .chat-actions button svg,
@@ -189,13 +227,40 @@
       color: var(--muted);
     }
 
-    .section-title {
+    .section-header {
       margin: 18px 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .section-title {
+      margin: 0;
       font-size: 12px;
       color: #8695ac;
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+    }
+
+    .section-add {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .section-add:hover {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(37, 99, 235, 0.18);
+      color: var(--accent-2);
     }
 
     .history {
@@ -297,6 +362,109 @@
       stroke-linejoin: round;
     }
 
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 0 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    }
+
+    .project-header {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .project-main {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.24);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .project-main:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .project-main.active {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(37, 99, 235, 0.16);
+    }
+
+    .project-main strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-main span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .project-chat-add {
+      width: 36px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .project-chat-add:hover {
+      background: rgba(37, 99, 235, 0.08);
+      border-color: rgba(37, 99, 235, 0.14);
+      color: var(--accent-2);
+    }
+
+    .project-chat-add svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .project-chats {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 12px;
+    }
+
+    .project-empty {
+      padding: 6px 10px 2px 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .history-item.child {
+      padding: 0;
+    }
+
+    .history-item-main.child {
+      padding-left: 12px;
+    }
+
     .sidebar-footer {
       margin-top: 10px;
       padding: 12px 8px 2px;
@@ -344,6 +512,25 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .share-notice {
+      display: none;
+      width: min(100%, 820px);
+      margin: 14px auto 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .share-notice.show {
+      display: block;
     }
 
     .topbar-action,
@@ -667,6 +854,10 @@
       flex-shrink: 0;
     }
 
+    .attachment-preview.hidden {
+      display: none;
+    }
+
     .attachment-clear {
       border: 0;
       background: transparent;
@@ -748,6 +939,24 @@
       transform: none;
     }
 
+    body.share-mode .app-shell {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.share-mode .sidebar,
+    body.share-mode .control-row,
+    body.share-mode .composer-wrap {
+      display: none;
+    }
+
+    body.share-mode .chat-column {
+      width: min(100%, 920px);
+    }
+
+    body.share-mode .chat-scroll {
+      padding-bottom: 40px;
+    }
+
     @keyframes blink {
       0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
       40% { opacity: 1; transform: translateY(-2px); }
@@ -814,7 +1023,7 @@
   </style>
 </head>
 <body>
-  <div class="app-shell">
+  <div class="app-shell" id="appShell">
     <aside class="sidebar">
       <div class="sidebar-top">
         <div class="brand">
@@ -846,41 +1055,50 @@
           </svg>
           <span>채팅 검색</span>
         </div>
-        <div class="nav-item muted">
-          <svg viewBox="0 0 24 24">
-            <path d="M4 7h7"></path>
-            <path d="M4 12h10"></path>
-            <path d="M4 17h5"></path>
-            <path d="M16 5v14"></path>
-            <path d="M12 9h8"></path>
+        <button class="nav-item nav-item-button muted" id="projectNavBtn" type="button">
+          <span class="nav-item-left">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h7"></path>
+              <path d="M4 12h10"></path>
+              <path d="M4 17h5"></path>
+              <path d="M16 5v14"></path>
+              <path d="M12 9h8"></path>
+            </svg>
+            <span>프로젝트</span>
+          </span>
+          <svg class="nav-chevron" viewBox="0 0 24 24">
+            <path d="m9 6 6 6-6 6"></path>
           </svg>
-          <span>프로젝트</span>
-        </div>
+        </button>
       </div>
 
-      <div class="section-title">최근</div>
+      <div class="section-header">
+        <div class="section-title">채팅 목록</div>
+        <button class="section-add" id="addProjectBtn" type="button" aria-label="새 프로젝트 추가">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 5v14"></path>
+            <path d="M5 12h14"></path>
+          </svg>
+        </button>
+      </div>
       <div class="history" id="historyList"></div>
 
-      <div class="sidebar-footer">
-        현재 세션 기반 채팅만 저장합니다.<br>
-        색감은 유지하고 대화 흐름에 집중한 레이아웃입니다.
-      </div>
     </aside>
 
     <main class="main">
       <div class="topbar">
         <div class="topbar-title">
           <span id="chatTitle">PublicGPT</span>
-          <small>OpenAI chat</small>
+          <small id="topbarSubtitle">OpenAI chat</small>
         </div>
         <div class="topbar-actions">
-          <button class="topbar-action" type="button">
+          <button class="topbar-action" id="shareChatBtn" type="button">
             <svg viewBox="0 0 24 24">
               <path d="M12 16V4"></path>
               <path d="m7 9 5-5 5 5"></path>
               <path d="M5 20h14"></path>
             </svg>
-            <span>공유</span>
+            <span id="shareChatLabel">공유</span>
           </button>
           <button class="topbar-action" type="button" aria-label="More actions">
             <svg viewBox="0 0 24 24">
@@ -891,6 +1109,7 @@
           </button>
         </div>
       </div>
+      <div class="share-notice" id="shareNotice"></div>
 
       <div class="chat-stage">
         <div class="chat-column">
@@ -933,13 +1152,13 @@
                 <button class="attachment-clear" id="clearAttachmentBtn" type="button">제거</button>
               </div>
               <div class="composer-main">
-                <button class="composer-icon" id="attachBtn" type="button" aria-label="Attach image for OCR">
+                <button class="composer-icon" id="attachBtn" type="button" aria-label="Attach image or PDF for OCR">
                   <svg viewBox="0 0 24 24">
                     <path d="M12 5v14"></path>
                     <path d="M5 12h14"></path>
                   </svg>
                 </button>
-                <input id="ocrFileInput" type="file" accept="image/*" hidden>
+                <input id="ocrFileInput" type="file" hidden>
                 <textarea id="messageInput" placeholder="무엇이든 물어보세요"></textarea>
                 <button class="composer-icon" type="button" aria-label="Voice">
                   <svg viewBox="0 0 24 24">
@@ -963,19 +1182,36 @@
 
   <script>
     const API = window.location.origin;
+    const shareQueryChatId = new URLSearchParams(window.location.search).get("share");
+    const DEFAULT_WELCOME_TITLE = "무엇을 도와드릴까요?";
+    const DEFAULT_WELCOME_TEXT = "긴 대화도 계속 이어질 수 있도록, 대화 흐름에 집중한 ChatGPT 스타일 레이아웃으로 정리했습니다.";
+    const DEFAULT_PROJECT_NAME = "새 채팅";
     const state = {
+      projects: {},
       chats: {},
+      currentProjectId: null,
       currentChatId: null,
+      projectsCollapsed: false,
+      shareChatId: shareQueryChatId ? shareQueryChatId.trim() || null : null,
       loading: false,
     };
 
+    const appShell = document.getElementById("appShell");
     const historyList = document.getElementById("historyList");
+    const projectNavBtn = document.getElementById("projectNavBtn");
+    const addProjectBtn = document.getElementById("addProjectBtn");
     const chatTitle = document.getElementById("chatTitle");
+    const topbarSubtitle = document.getElementById("topbarSubtitle");
+    const shareNotice = document.getElementById("shareNotice");
+    const shareChatBtn = document.getElementById("shareChatBtn");
+    const shareChatLabel = document.getElementById("shareChatLabel");
     const modelSelect = document.getElementById("modelSelect");
     const webSearchToggle = document.getElementById("webSearchToggle");
     const messagesPanel = document.getElementById("messagesPanel");
     const messageList = document.getElementById("messageList");
     const welcomeCard = document.getElementById("welcomeCard");
+    const welcomeTitle = welcomeCard.querySelector("h3");
+    const welcomeText = welcomeCard.querySelector("p");
     const typingRow = document.getElementById("typingRow");
     const messageInput = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
@@ -988,26 +1224,188 @@
     const clearAttachmentBtn = document.getElementById("clearAttachmentBtn");
     let pendingImageFile = null;
     let pendingImagePreviewUrl = "";
+    let shareButtonTimerId = null;
 
-    function createChat() {
-      const id = "chat_" + Date.now();
+    function generateId(prefix) {
+      return prefix + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function getProject(projectId) {
+      return projectId ? state.projects[projectId] || null : null;
+    }
+
+    function getCurrentChat() {
+      return state.currentChatId ? state.chats[state.currentChatId] || null : null;
+    }
+
+    function isShareMode() {
+      return Boolean(state.shareChatId);
+    }
+
+    function setShareMode(enabled) {
+      document.body.classList.toggle("share-mode", enabled);
+      appShell.classList.toggle("share-mode", enabled);
+      topbarSubtitle.textContent = enabled ? "공유된 채팅" : "OpenAI chat";
+    }
+
+    function setWelcomeContent(title, text) {
+      welcomeTitle.textContent = title;
+      welcomeText.textContent = text;
+    }
+
+    function setShareNotice(chat) {
+      if (!isShareMode()) {
+        shareNotice.classList.remove("show");
+        shareNotice.textContent = "";
+        setWelcomeContent(DEFAULT_WELCOME_TITLE, DEFAULT_WELCOME_TEXT);
+        return;
+      }
+
+      shareNotice.classList.add("show");
+      if (chat) {
+        shareNotice.textContent = "읽기 전용 공유 링크입니다. 상단 공유 버튼으로 이 페이지 주소를 다시 복사할 수 있습니다.";
+        setWelcomeContent("공유된 채팅", "이 링크는 읽기 전용입니다.");
+      } else {
+        shareNotice.textContent = "공유된 채팅을 찾을 수 없습니다. 링크가 잘못되었거나 원본 채팅이 삭제되었을 수 있습니다.";
+        setWelcomeContent("채팅을 찾을 수 없습니다", "링크가 만료되었거나 삭제된 채팅입니다.");
+      }
+    }
+
+    function buildShareUrl(chatId) {
+      const url = new URL("/ui", window.location.origin);
+      url.searchParams.set("share", chatId);
+      return url.toString();
+    }
+
+    function updateShareButton(label) {
+      shareChatLabel.textContent = label;
+      if (shareButtonTimerId) {
+        clearTimeout(shareButtonTimerId);
+      }
+      if (label === "공유") {
+        shareButtonTimerId = null;
+        return;
+      }
+      shareButtonTimerId = window.setTimeout(() => {
+        shareChatLabel.textContent = "공유";
+        shareButtonTimerId = null;
+      }, 1800);
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (error) {
+          console.warn("Clipboard API copy failed", error);
+        }
+      }
+
+      const helper = document.createElement("textarea");
+      helper.value = text;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "fixed";
+      helper.style.opacity = "0";
+      helper.style.pointerEvents = "none";
+      document.body.appendChild(helper);
+      helper.focus();
+      helper.select();
+
+      try {
+        return document.execCommand("copy");
+      } catch (error) {
+        console.warn("execCommand copy failed", error);
+        return false;
+      } finally {
+        document.body.removeChild(helper);
+      }
+    }
+
+    async function handleShareChat() {
+      const chat = getCurrentChat();
+      if (!chat) {
+        window.alert("공유할 채팅을 먼저 선택해 주세요.");
+        return;
+      }
+
+      const shareUrl = buildShareUrl(chat.id);
+      const copied = await copyTextToClipboard(shareUrl);
+      if (copied) {
+        updateShareButton("링크 복사됨");
+        return;
+      }
+
+      window.prompt("이 링크를 복사하세요.", shareUrl);
+      updateShareButton("링크 열기");
+    }
+
+    function getSortedProjectIds() {
+      return Object.keys(state.projects).sort(
+        (a, b) => (state.projects[b]?.createdAt || 0) - (state.projects[a]?.createdAt || 0)
+      );
+    }
+
+    function ensureDefaultProject() {
+      const ids = Object.keys(state.projects);
+      if (ids.length) {
+        return ids[0];
+      }
+      const id = generateId("project");
+      state.projects[id] = {
+        id,
+        name: DEFAULT_PROJECT_NAME,
+        chatIds: [],
+        createdAt: Date.now(),
+      };
+      state.currentProjectId = id;
+      return id;
+    }
+
+    function createProject(name = "새 프로젝트") {
+      const trimmed = (name || "").trim() || "새 프로젝트";
+      const id = generateId("project");
+      state.projects[id] = {
+        id,
+        name: trimmed,
+        chatIds: [],
+        createdAt: Date.now(),
+      };
+      state.currentProjectId = id;
+      state.currentChatId = null;
+      state.projectsCollapsed = false;
+      renderHistory();
+      renderCurrentChat(false);
+      saveChats();
+      return id;
+    }
+
+    function createChat(projectId = state.currentProjectId) {
+      const resolvedProjectId = projectId || ensureDefaultProject();
+      const project = getProject(resolvedProjectId);
+      const id = generateId("chat");
       state.chats[id] = {
         id,
         title: "새 채팅",
         messages: [],
         createdAt: Date.now(),
+        projectId: resolvedProjectId,
       };
+      project.chatIds = [id, ...(project.chatIds || []).filter((chatId) => chatId !== id)];
+      state.currentProjectId = resolvedProjectId;
       state.currentChatId = id;
       renderHistory();
       renderCurrentChat(true);
       saveChats();
+      return state.chats[id];
     }
 
-    function ensureChat() {
-      if (!state.currentChatId || !state.chats[state.currentChatId]) {
-        createChat();
+    function ensureChat(projectId = state.currentProjectId) {
+      const chat = getCurrentChat();
+      if (chat) {
+        return chat;
       }
-      return state.chats[state.currentChatId];
+      return createChat(projectId);
     }
 
     function escapeHtml(value) {
@@ -1021,78 +1419,275 @@
       return last ? last.content.slice(0, 42) : "새 대화를 시작해 보세요.";
     }
 
-    function selectFallbackChat() {
-      const ids = Object.keys(state.chats);
-      if (!ids.length) {
-        createChat();
+    function normalizeUiState(payload) {
+      const normalized = {
+        projects: {},
+        chats: {},
+        currentProjectId: null,
+        currentChatId: null,
+      };
+
+      const defaultProjectId = generateId("project");
+      const payloadProjects = payload && typeof payload.projects === "object" ? payload.projects : null;
+      const payloadChats = payload && typeof payload.chats === "object" ? payload.chats : {};
+
+      if (payloadProjects && Object.keys(payloadProjects).length) {
+        Object.entries(payloadProjects).forEach(([projectId, project]) => {
+          if (!project || typeof project !== "object") {
+            return;
+          }
+          normalized.projects[projectId] = {
+            id: projectId,
+            name: ((project.name || "프로젝트").toString() === "기본 프로젝트"
+              ? DEFAULT_PROJECT_NAME
+              : (project.name || "프로젝트").toString()),
+            createdAt: Number(project.createdAt) || Date.now(),
+            chatIds: Array.isArray(project.chatIds) ? project.chatIds.filter((chatId) => typeof chatId === "string") : [],
+          };
+        });
+      }
+
+      Object.entries(payloadChats || {}).forEach(([chatId, chat]) => {
+        if (!chat || typeof chat !== "object") {
+          return;
+        }
+        normalized.chats[chatId] = {
+          ...chat,
+          id: chatId,
+          title: (chat.title || "새 채팅").toString(),
+          messages: Array.isArray(chat.messages) ? chat.messages : [],
+          createdAt: Number(chat.createdAt) || Date.now(),
+          projectId: typeof chat.projectId === "string" ? chat.projectId : null,
+        };
+      });
+
+      if (!Object.keys(normalized.projects).length) {
+        normalized.projects[defaultProjectId] = {
+          id: defaultProjectId,
+          name: DEFAULT_PROJECT_NAME,
+          createdAt: Date.now(),
+          chatIds: [],
+        };
+      }
+
+      Object.values(normalized.projects).forEach((project) => {
+        project.chatIds = (project.chatIds || []).filter((chatId) => normalized.chats[chatId]);
+      });
+
+      const referenced = new Set();
+      Object.values(normalized.projects).forEach((project) => {
+        project.chatIds.forEach((chatId) => {
+          referenced.add(chatId);
+          if (normalized.chats[chatId]) {
+            normalized.chats[chatId].projectId = project.id;
+          }
+        });
+      });
+
+      let fallbackProjectId = Object.keys(normalized.projects)[0];
+      Object.values(normalized.chats)
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .forEach((chat) => {
+          const projectId = chat.projectId && normalized.projects[chat.projectId] ? chat.projectId : fallbackProjectId;
+          chat.projectId = projectId;
+          if (!referenced.has(chat.id)) {
+            normalized.projects[projectId].chatIds.push(chat.id);
+          }
+        });
+
+      normalized.currentProjectId =
+        payload && normalized.projects[payload.currentProjectId]
+          ? payload.currentProjectId
+          : (normalized.chats[payload?.currentChatId]?.projectId || fallbackProjectId);
+      normalized.currentChatId =
+        payload && normalized.chats[payload.currentChatId] ? payload.currentChatId : null;
+
+      return normalized;
+    }
+
+    function selectProject(projectId, preferredChatId = null) {
+      const project = getProject(projectId);
+      if (!project) {
         return;
       }
-      state.currentChatId = ids.sort(
-        (a, b) => (state.chats[b].createdAt || 0) - (state.chats[a].createdAt || 0)
-      )[0];
+      state.currentProjectId = projectId;
+      state.currentChatId =
+        preferredChatId && state.chats[preferredChatId]
+          ? preferredChatId
+          : (project.chatIds || []).find((chatId) => state.chats[chatId]) || null;
+      renderHistory();
+      renderCurrentChat(false);
+    }
+
+    function selectFallbackChat(projectId = state.currentProjectId) {
+      const preferredProject = getProject(projectId);
+      const preferredChatId = preferredProject
+        ? (preferredProject.chatIds || []).find((chatId) => state.chats[chatId]) || null
+        : null;
+      if (preferredProject) {
+        state.currentProjectId = preferredProject.id;
+      }
+      if (preferredChatId) {
+        state.currentChatId = preferredChatId;
+        renderHistory();
+        renderCurrentChat(false);
+        return;
+      }
+
+      const allProjectIds = getSortedProjectIds();
+      for (const nextProjectId of allProjectIds) {
+        const nextProject = getProject(nextProjectId);
+        const nextChatId = (nextProject?.chatIds || []).find((chatId) => state.chats[chatId]) || null;
+        if (nextProject) {
+          state.currentProjectId = nextProjectId;
+        }
+        if (nextChatId) {
+          state.currentChatId = nextChatId;
+          renderHistory();
+          renderCurrentChat(false);
+          return;
+        }
+      }
+
+      state.currentChatId = null;
+      if (!state.currentProjectId) {
+        state.currentProjectId = ensureDefaultProject();
+      }
       renderHistory();
       renderCurrentChat(false);
     }
 
     function deleteChat(chatId) {
-      if (!state.chats[chatId]) {
+      const chat = state.chats[chatId];
+      if (!chat) {
         return;
+      }
+      const projectId = chat.projectId;
+      const project = getProject(projectId);
+      if (project) {
+        project.chatIds = (project.chatIds || []).filter((id) => id !== chatId);
       }
       delete state.chats[chatId];
 
       if (state.currentChatId === chatId) {
-        selectFallbackChat();
+        state.currentChatId = null;
+        selectFallbackChat(projectId);
       } else {
         renderHistory();
+        renderCurrentChat(false);
       }
 
       saveChats();
     }
 
     function renderHistory() {
-      const chats = Object.values(state.chats).sort((a, b) => b.createdAt - a.createdAt);
       historyList.innerHTML = "";
+      projectNavBtn.classList.toggle("collapsed", state.projectsCollapsed);
+      projectNavBtn.classList.toggle("active", !state.projectsCollapsed);
+      addProjectBtn.hidden = state.projectsCollapsed;
+      historyList.style.display = state.projectsCollapsed ? "none" : "flex";
 
-      if (!chats.length) {
+      if (state.projectsCollapsed) {
+        return;
+      }
+
+      const projectIds = getSortedProjectIds();
+
+      if (!projectIds.length) {
         const empty = document.createElement("div");
         empty.className = "history-item";
-        empty.innerHTML = '<div class="history-item-main"><strong>채팅 없음</strong><span>새 채팅을 시작해 보세요.</span></div>';
+        empty.innerHTML = '<div class="history-item-main"><strong>프로젝트 없음</strong><span>새 프로젝트를 만들어 보세요.</span></div>';
         historyList.appendChild(empty);
         return;
       }
 
-      chats.forEach((chat) => {
-        const row = document.createElement("div");
-        row.className = "history-item";
+      projectIds.forEach((projectId) => {
+        const project = getProject(projectId);
+        if (!project) {
+          return;
+        }
 
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "history-item-main" + (chat.id === state.currentChatId ? " active" : "");
-        item.innerHTML = `<strong>${escapeHtml(chat.title)}</strong><span>${escapeHtml(chatPreview(chat))}</span>`;
-        item.addEventListener("click", () => {
-          state.currentChatId = chat.id;
-          renderHistory();
-          renderCurrentChat(false);
-        });
+        const card = document.createElement("div");
+        card.className = "project-card";
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "history-delete";
-        deleteBtn.setAttribute("aria-label", `${chat.title} 삭제`);
-        deleteBtn.innerHTML = `
+        const header = document.createElement("div");
+        header.className = "project-header";
+
+        const projectBtn = document.createElement("button");
+        projectBtn.type = "button";
+        projectBtn.className = "project-main" + (projectId === state.currentProjectId ? " active" : "");
+        projectBtn.innerHTML = `
+          <strong>${escapeHtml(project.name)}</strong>
+          <span>${(project.chatIds || []).length}개 채팅</span>
+        `;
+        projectBtn.addEventListener("click", () => selectProject(projectId));
+
+        const addChatBtn = document.createElement("button");
+        addChatBtn.type = "button";
+        addChatBtn.className = "project-chat-add";
+        addChatBtn.setAttribute("aria-label", `${project.name}에 새 채팅 추가`);
+        addChatBtn.innerHTML = `
           <svg viewBox="0 0 24 24">
-            <path d="M4 7h16"></path>
-            <path d="M10 11v6"></path>
-            <path d="M14 11v6"></path>
-            <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path>
-            <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
+            <path d="M12 5v14"></path>
+            <path d="M5 12h14"></path>
           </svg>
         `;
-        deleteBtn.addEventListener("click", () => deleteChat(chat.id));
+        addChatBtn.addEventListener("click", () => createChat(projectId));
 
-        row.appendChild(item);
-        row.appendChild(deleteBtn);
-        historyList.appendChild(row);
+        header.appendChild(projectBtn);
+        header.appendChild(addChatBtn);
+        card.appendChild(header);
+
+        const children = document.createElement("div");
+        children.className = "project-chats";
+        const chats = (project.chatIds || [])
+          .map((chatId) => state.chats[chatId])
+          .filter(Boolean);
+
+        if (!chats.length) {
+          const empty = document.createElement("div");
+          empty.className = "project-empty";
+          empty.textContent = "아직 채팅이 없어요. + 버튼으로 시작해보세요.";
+          children.appendChild(empty);
+        }
+
+        chats.forEach((chat) => {
+          const row = document.createElement("div");
+          row.className = "history-item child";
+
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = "history-item-main child" + (chat.id === state.currentChatId ? " active" : "");
+          item.innerHTML = `<strong>${escapeHtml(chat.title)}</strong><span>${escapeHtml(chatPreview(chat))}</span>`;
+          item.addEventListener("click", () => {
+            state.currentProjectId = projectId;
+            state.currentChatId = chat.id;
+            renderHistory();
+            renderCurrentChat(false);
+          });
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "history-delete";
+          deleteBtn.setAttribute("aria-label", `${chat.title} 삭제`);
+          deleteBtn.innerHTML = `
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h16"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"></path>
+              <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
+            </svg>
+          `;
+          deleteBtn.addEventListener("click", () => deleteChat(chat.id));
+
+          row.appendChild(item);
+          row.appendChild(deleteBtn);
+          children.appendChild(row);
+        });
+
+        card.appendChild(children);
+        historyList.appendChild(card);
       });
     }
 
@@ -1166,10 +1761,15 @@
     }
 
     function renderCurrentChat(scrollToEnd) {
-      const chat = ensureChat();
-      chatTitle.textContent = chat.title;
-      renderMessages(chat.messages);
-      welcomeCard.style.display = chat.messages.length ? "none" : "block";
+      const chat = getCurrentChat();
+      const project = getProject(state.currentProjectId);
+      chatTitle.textContent = chat ? chat.title : (project?.name || "PublicGPT");
+      setShareNotice(chat);
+      document.title = isShareMode()
+        ? `${chat ? chat.title : "공유된 채팅"} - PublicGPT`
+        : "PublicGPT";
+      renderMessages(chat ? chat.messages : []);
+      welcomeCard.style.display = chat && chat.messages.length ? "none" : "block";
       if (scrollToEnd) {
         scrollMessagesToBottom();
       }
@@ -1192,10 +1792,10 @@
       }
     }
 
-    function serializeChatsForSave() {
-      const serialized = {};
+    function serializeUiStateForSave() {
+      const serializedChats = {};
       Object.entries(state.chats).forEach(([chatId, chat]) => {
-        serialized[chatId] = {
+        serializedChats[chatId] = {
           ...chat,
           messages: (chat.messages || []).map((message) => {
             const next = { ...message };
@@ -1204,7 +1804,12 @@
           }),
         };
       });
-      return serialized;
+      return {
+        projects: state.projects,
+        chats: serializedChats,
+        currentProjectId: state.currentProjectId,
+        currentChatId: state.currentChatId,
+      };
     }
 
     function setPendingImage(file) {
@@ -1214,15 +1819,22 @@
       if (!file) {
         attachmentStatus.classList.remove("show");
         attachmentPreview.removeAttribute("src");
+        attachmentPreview.classList.add("hidden");
         attachmentName.textContent = "";
         attachBtn.title = "";
         return;
       }
-      pendingImagePreviewUrl = URL.createObjectURL(file);
+      if ((file.type || "").startsWith("image/")) {
+        pendingImagePreviewUrl = URL.createObjectURL(file);
+        attachmentPreview.src = pendingImagePreviewUrl;
+        attachmentPreview.classList.remove("hidden");
+      } else {
+        attachmentPreview.removeAttribute("src");
+        attachmentPreview.classList.add("hidden");
+      }
       attachmentStatus.classList.add("show");
-      attachmentPreview.src = pendingImagePreviewUrl;
       attachmentName.textContent = file.name || "붙여넣은 이미지";
-      attachBtn.title = "이미지 첨부됨";
+      attachBtn.title = "파일 첨부됨";
     }
 
     function clearPendingImage(revokePreview = true) {
@@ -1234,6 +1846,7 @@
       ocrFileInput.value = "";
       attachmentStatus.classList.remove("show");
       attachmentPreview.removeAttribute("src");
+      attachmentPreview.classList.add("hidden");
       attachmentName.textContent = "";
       attachBtn.title = "";
     }
@@ -1326,21 +1939,37 @@
       try {
         const response = await fetch(API + "/ui-state/chats");
         const payload = await response.json();
-        state.chats = payload.chats || {};
+        const normalized = normalizeUiState(payload || {});
+        state.projects = normalized.projects;
+        state.chats = normalized.chats;
+        state.currentProjectId = normalized.currentProjectId;
+        state.currentChatId = normalized.currentChatId;
       } catch (error) {
+        state.projects = {};
         state.chats = {};
+        state.currentProjectId = null;
+        state.currentChatId = null;
       }
 
-      const ids = Object.keys(state.chats);
-      if (!ids.length) {
-        createChat();
+      if (isShareMode()) {
+        const sharedChat = state.shareChatId ? state.chats[state.shareChatId] || null : null;
+        state.currentProjectId = sharedChat?.projectId || null;
+        state.currentChatId = sharedChat?.id || null;
+        setShareMode(true);
+        renderHistory();
+        renderCurrentChat(false);
         return;
       }
 
-      state.currentChatId = ids.sort(
-        (a, b) => (state.chats[b].createdAt || 0) - (state.chats[a].createdAt || 0)
-      )[0];
-
+      setShareMode(false);
+      ensureDefaultProject();
+      if (!state.currentProjectId) {
+        state.currentProjectId = getSortedProjectIds()[0] || null;
+      }
+      if (!state.currentChatId) {
+        selectFallbackChat(state.currentProjectId);
+        return;
+      }
       renderHistory();
       renderCurrentChat(false);
     }
@@ -1350,7 +1979,7 @@
         await fetch(API + "/ui-state/chats", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chats: serializeChatsForSave() }),
+          body: JSON.stringify(serializeUiStateForSave()),
         });
       } catch (error) {
         console.warn("Failed to save chats", error);
@@ -1365,6 +1994,10 @@
     }
 
     async function sendMessage() {
+      if (isShareMode()) {
+        return;
+      }
+
       if (state.loading) {
         return;
       }
@@ -1376,17 +2009,20 @@
 
       const pendingFile = pendingImageFile;
       const pendingPreviewUrl = pendingImagePreviewUrl;
-      const userDisplayText = text || "[이미지 첨부]";
-      const requestMessage = text || "첨부한 이미지의 텍스트를 읽고 핵심 내용을 설명해줘.";
+      const isImageFile = pendingFile && (pendingFile.type || "").startsWith("image/");
+      const attachmentLabel = isImageFile ? "이미지" : "파일";
+      const requestSubject = isImageFile ? "이미지" : "PDF 파일";
+      const userDisplayText = text || `[${attachmentLabel} 첨부]`;
+      const requestMessage = text || `첨부한 ${requestSubject}의 텍스트를 읽고 핵심 내용을 설명해줘.`;
 
-      const chat = ensureChat();
+      const chat = ensureChat(state.currentProjectId);
       if (chat.title === "새 채팅") {
         chat.title = userDisplayText.length > 20 ? userDisplayText.slice(0, 20) + "..." : userDisplayText;
       }
 
       chat.messages.push({
         role: "user",
-        content: pendingFile ? `${userDisplayText}\n\n[이미지 첨부: ${pendingFile.name || "clipboard-image"}]` : userDisplayText,
+        content: pendingFile ? `${userDisplayText}\n\n[첨부 파일: ${pendingFile.name || "attachment"}]` : userDisplayText,
         mode: "",
         imageName: pendingFile ? (pendingFile.name || "clipboard-image") : "",
         imagePreviewUrl: pendingFile ? pendingPreviewUrl : "",
@@ -1446,7 +2082,21 @@
       }
     }
 
-    newChatBtn.addEventListener("click", createChat);
+    function promptNewProject() {
+      const name = window.prompt("프로젝트 이름을 입력하세요.", "새 프로젝트");
+      if (name === null) {
+        return;
+      }
+      createProject(name);
+    }
+
+    newChatBtn.addEventListener("click", () => createChat(state.currentProjectId || ensureDefaultProject()));
+    projectNavBtn.addEventListener("click", () => {
+      state.projectsCollapsed = !state.projectsCollapsed;
+      renderHistory();
+    });
+    addProjectBtn.addEventListener("click", promptNewProject);
+    shareChatBtn.addEventListener("click", handleShareChat);
     attachBtn.addEventListener("click", () => ocrFileInput.click());
     ocrFileInput.addEventListener("change", handleOcrSelection);
     clearAttachmentBtn.addEventListener("click", clearPendingImage);

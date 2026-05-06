@@ -5,10 +5,26 @@ OCR helpers backed by Tesseract.
 from __future__ import annotations
 
 import asyncio
+import base64
 import io
+import logging
 import re
+import subprocess
+import tempfile
+from pathlib import Path
 
-from app.config import OCR_LANG, TESSERACT_CMD
+from app.config import (
+    OCR_LANG,
+    OCR_PDF_DPI,
+    OCR_PDF_MAX_PAGES,
+    OCR_VISION_FALLBACK,
+    OCR_VISION_MIN_SCORE,
+    OCR_VISION_MODEL,
+    TESSERACT_CMD,
+)
+from app.core.llm import call_llm_with_image, get_response_text
+
+logger = logging.getLogger("publicgpt.ocr")
 
 
 def _score_text(text: str) -> int:
@@ -20,7 +36,7 @@ def _score_text(text: str) -> int:
 
 
 def _prepare_variants(image):
-    from PIL import ImageFilter, ImageOps
+    from PIL import Image, ImageFilter, ImageOps
 
     image = ImageOps.exif_transpose(image)
     grayscale = ImageOps.grayscale(image)
@@ -30,9 +46,10 @@ def _prepare_variants(image):
     longest = max(width, height)
     if longest and longest < 1800:
         scale = 1800 / float(longest)
+        resample_filter = getattr(Image, "LANCZOS", getattr(Image, "BICUBIC", 3))
         grayscale = grayscale.resize(
             (max(1, int(width * scale)), max(1, int(height * scale))),
-            resample=grayscale.Resampling.LANCZOS,
+            resample=resample_filter,
         )
 
     sharpened = grayscale.filter(ImageFilter.SHARPEN)
@@ -40,6 +57,41 @@ def _prepare_variants(image):
     thresholded = denoised.point(lambda px: 255 if px > 160 else 0, mode="1").convert("L")
 
     return [grayscale, denoised, thresholded]
+
+
+def _image_to_data_url(image) -> str:
+    prepared = image.convert("RGB")
+    buf = io.BytesIO()
+    prepared.save(buf, format="PNG")
+    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def _should_try_vision(best_text: str, best_score: int) -> bool:
+    if not OCR_VISION_FALLBACK:
+        return False
+    if best_score < OCR_VISION_MIN_SCORE:
+        return True
+    lowered = best_text.lower()
+    if lowered.count("?") >= 3:
+        return True
+    return False
+
+
+def _vision_ocr_sync(image) -> str:
+    prompt = (
+        "Extract all readable text from this image exactly as written. "
+        "Preserve line breaks when helpful. "
+        "Do not summarize, translate, or explain. "
+        "If only part of the text is readable, return only the readable text."
+    )
+    result = call_llm_with_image(
+        prompt=prompt,
+        image_url=_image_to_data_url(image),
+        model=OCR_VISION_MODEL,
+        max_tokens=800,
+    )
+    return get_response_text(result).strip()
 
 
 def _ocr_sync(image_bytes: bytes) -> str:
@@ -75,6 +127,16 @@ def _ocr_sync(image_bytes: bytes) -> str:
                     if score > best_score:
                         best_score = score
                         best_text = text
+
+            if _should_try_vision(best_text, best_score):
+                try:
+                    vision_text = _vision_ocr_sync(image)
+                    vision_score = _score_text(vision_text)
+                    if vision_score >= best_score:
+                        best_text = vision_text
+                        best_score = vision_score
+                except Exception as exc:
+                    logger.warning("Vision OCR fallback failed: %s", exc)
     except UnidentifiedImageError as exc:
         raise ValueError("The uploaded file is not a readable image.") from exc
     except TesseractNotFoundError as exc:
@@ -85,5 +147,44 @@ def _ocr_sync(image_bytes: bytes) -> str:
     return best_text.strip()
 
 
-async def extract_ocr_text(image_bytes: bytes) -> str:
-    return await asyncio.to_thread(_ocr_sync, image_bytes)
+def _extract_pdf_ocr_sync(pdf_bytes: bytes) -> str:
+    with tempfile.TemporaryDirectory(prefix="publicgpt-pdf-ocr-") as tmpdir:
+        tmp_path = Path(tmpdir)
+        pdf_path = tmp_path / "input.pdf"
+        output_prefix = tmp_path / "page"
+        pdf_path.write_bytes(pdf_bytes)
+
+        cmd = [
+            "pdftoppm",
+            "-png",
+            "-r",
+            str(OCR_PDF_DPI),
+            "-f",
+            "1",
+            "-l",
+            str(OCR_PDF_MAX_PAGES),
+            str(pdf_path),
+            str(output_prefix),
+        ]
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+        except FileNotFoundError as exc:
+            raise RuntimeError("pdftoppm is not installed, so PDF OCR is unavailable.") from exc
+        except subprocess.CalledProcessError as exc:
+            error_text = (exc.stderr or exc.stdout or "").strip()
+            raise ValueError(f"The uploaded PDF could not be converted for OCR. {error_text}".strip()) from exc
+
+        page_texts: list[str] = []
+        for image_path in sorted(tmp_path.glob("page-*.png")):
+            text = _ocr_sync(image_path.read_bytes()).strip()
+            if text:
+                page_texts.append(f"[Page {len(page_texts) + 1}]\n{text}")
+
+        return "\n\n".join(page_texts).strip()
+
+
+async def extract_ocr_text(file_bytes: bytes, content_type: str = "image/png") -> str:
+    normalized = (content_type or "").lower()
+    if normalized == "application/pdf":
+        return await asyncio.to_thread(_extract_pdf_ocr_sync, file_bytes)
+    return await asyncio.to_thread(_ocr_sync, file_bytes)

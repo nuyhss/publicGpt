@@ -44,13 +44,13 @@ def search_similar(
     collection,
     query: str,
     user_id: str,
-    n_results: int = 3,
     exclude_ids: list[str] | None = None,
 ) -> list[dict]:
     try:
+        total_count = max(1, int(collection.count()))
         results = collection.query(
             query_texts=[query],
-            n_results=n_results + len(exclude_ids or []) + 5,
+            n_results=total_count,
             where={"user_id": user_id},
         )
     except Exception:
@@ -74,7 +74,5 @@ def search_similar(
                 "distance": dist,
             }
         )
-        if len(output) >= n_results:
-            break
 
     return output

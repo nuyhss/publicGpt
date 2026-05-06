@@ -47,13 +47,17 @@ DUCKDUCKGO_REGION = os.getenv("DUCKDUCKGO_REGION", "kr-kr")
 OCR_LANG = os.getenv("OCR_LANG", "kor+eng").strip() or "kor+eng"
 TESSERACT_CMD = os.getenv("TESSERACT_CMD", "").strip()
 OCR_MAX_FILE_SIZE = max(1, int(os.getenv("OCR_MAX_FILE_SIZE", str(10 * 1024 * 1024))))
+OCR_VISION_FALLBACK = os.getenv("OCR_VISION_FALLBACK", "true").lower() == "true"
+OCR_VISION_MODEL = os.getenv("OCR_VISION_MODEL", "gpt-4.1-mini").strip() or "gpt-4.1-mini"
+OCR_VISION_MIN_SCORE = max(0, int(os.getenv("OCR_VISION_MIN_SCORE", "18")))
+OCR_PDF_DPI = max(72, int(os.getenv("OCR_PDF_DPI", "200")))
+OCR_PDF_MAX_PAGES = max(1, int(os.getenv("OCR_PDF_MAX_PAGES", "5")))
 
 # Long-term memory
 MEMORY_ENABLED = os.getenv("MEMORY_ENABLED", "true").lower() == "true"
 MEMORY_DB_PATH = _path_from_env("MEMORY_DB_PATH", DATA_DIR / "memory.db")
 MEMORY_CHROMA_PATH = _path_from_env("MEMORY_CHROMA_PATH", DATA_DIR / "chroma")
 EMBED_MODEL_NAME = os.getenv("EMBED_MODEL_NAME", "paraphrase-multilingual-MiniLM-L12-v2")
-MEMORY_TOP_K = int(os.getenv("MEMORY_TOP_K", "4"))
 SUMMARY_TRIGGER_TURNS = int(os.getenv("SUMMARY_TRIGGER_TURNS", "20"))
 SUMMARY_MAX_TOKENS = int(os.getenv("SUMMARY_MAX_TOKENS", "256"))
 

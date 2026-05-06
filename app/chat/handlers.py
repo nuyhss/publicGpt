@@ -11,7 +11,7 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional
 
-from app.config import DEFAULT_MODEL, MEMORY_CHROMA_PATH, MEMORY_DB_PATH, MEMORY_ENABLED, MEMORY_TOP_K
+from app.config import DEFAULT_MODEL, MEMORY_CHROMA_PATH, MEMORY_DB_PATH, MEMORY_ENABLED
 from app.core.llm import call_llm, get_response_text
 from app.core.web_search import format_search_results, search_web
 from app.models.schemas import Message
@@ -51,11 +51,10 @@ WEB_SEARCH_HINTS = [
 ]
 
 
-def _format_history(history: List[Message], max_turns: int = 12) -> str:
+def _format_history(history: List[Message]) -> str:
     if not history:
         return ""
-    trimmed = history[-max_turns:]
-    return "\n\n".join(f"[{item.role}]\n{item.content}" for item in trimmed)
+    return "\n\n".join(f"[{item.role}]\n{item.content}" for item in history)
 
 
 def _might_need_web_search(text: str) -> bool:
@@ -131,7 +130,6 @@ async def handle_chat(
                 user_id=user_id,
                 current_session_id=session_id,
                 current_message=user_message,
-                n_results=MEMORY_TOP_K,
             )
         except Exception as exc:
             logger.warning("Memory retrieval failed: %s", exc)

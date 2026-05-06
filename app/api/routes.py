@@ -95,18 +95,16 @@ def get_ui_state_chats(user_id: Optional[str] = None):
             logger.warning("Failed to read UI chat state (%s): %s", state_path, exc)
             return {"chats": {}}
 
-    chats = payload.get("chats") if isinstance(payload, dict) else {}
-    return {"chats": chats if isinstance(chats, dict) else {}}
+    return payload if isinstance(payload, dict) else {"chats": {}}
 
 
 @router.put("/ui-state/chats")
 def put_ui_state_chats(payload: dict = Body(...), user_id: Optional[str] = None):
-    chats = payload.get("chats") if isinstance(payload, dict) else None
-    if not isinstance(chats, dict):
-        raise HTTPException(status_code=400, detail="'chats' must be an object.")
+    if not isinstance(payload, dict):
+        raise HTTPException(status_code=400, detail="UI state payload must be an object.")
 
     state_path = _ui_chats_state_path(user_id)
-    document = {"chats": chats}
+    document = payload
 
     try:
         encoded = json.dumps(document, ensure_ascii=False)
@@ -126,7 +124,9 @@ def put_ui_state_chats(payload: dict = Body(...), user_id: Optional[str] = None)
             logger.exception("Failed to write UI chat state (%s)", state_path)
             raise HTTPException(status_code=500, detail=f"Failed to save UI chat state: {exc}")
 
-    return {"saved": True, "count": len(chats)}
+    chats = payload.get("chats") if isinstance(payload.get("chats"), dict) else {}
+    projects = payload.get("projects") if isinstance(payload.get("projects"), dict) else {}
+    return {"saved": True, "chat_count": len(chats), "project_count": len(projects)}
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -161,8 +161,15 @@ async def chat(req: ChatRequest):
 @router.post("/ocr")
 async def ocr(file: UploadFile = File(...)):
     content_type = (file.content_type or "").lower()
-    if not content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only image uploads are supported.")
+    is_image = content_type.startswith("image/")
+    is_pdf = content_type == "application/pdf"
+    if not is_image and not is_pdf:
+        raise HTTPException(status_code=400, detail="Only image or PDF uploads are supported.")
+    if content_type == "image/svg+xml":
+        raise HTTPException(
+            status_code=400,
+            detail="SVG images are not supported for OCR yet. Please upload PNG or JPG.",
+        )
 
     image_bytes = await file.read()
     if not image_bytes:
@@ -171,7 +178,7 @@ async def ocr(file: UploadFile = File(...)):
         raise HTTPException(status_code=413, detail="Image file is too large.")
 
     try:
-        text = await extract_ocr_text(image_bytes)
+        text = await extract_ocr_text(image_bytes, content_type=content_type)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
     except ValueError as exc:

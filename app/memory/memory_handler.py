@@ -43,7 +43,6 @@ class MemoryHandler:
         user_id: str,
         current_session_id: str,
         current_message: str,
-        n_results: int = 3,
     ) -> str:
         try:
             current_ids = get_session_ids(self.db_path, user_id, current_session_id)
@@ -51,7 +50,6 @@ class MemoryHandler:
                 self.collection,
                 query=current_message,
                 user_id=user_id,
-                n_results=n_results,
                 exclude_ids=current_ids,
             )
             if not hits:

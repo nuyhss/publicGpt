@@ -32,7 +32,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from app.config import EMBED_MODEL_NAME, MEMORY_DB_PATH, MEMORY_TOP_K
+from app.config import EMBED_MODEL_NAME, MEMORY_DB_PATH
 
 logger = logging.getLogger("publicgpt.memory.store")
 
@@ -89,7 +89,7 @@ def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b) / denom) if denom else 0.0
 
 
-def _tfidf_search(query: str, rows: list, top_k: int, min_score: float = 0.01) -> List[dict]:
+def _tfidf_search(query: str, rows: list, min_score: float = 0.01) -> List[dict]:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
 
@@ -121,7 +121,7 @@ def _tfidf_search(query: str, rows: list, top_k: int, min_score: float = 0.01) -
         if float(score) > min_score
     ]
     scored.sort(key=lambda item: item[0], reverse=True)
-    return [item for _, item in scored[:top_k]]
+    return [item for _, item in scored]
 
 
 def _conn() -> sqlite3.Connection:
@@ -194,7 +194,6 @@ def search_memory(
     query: str,
     session_id: Optional[str] = None,
     user_id: Optional[str] = None,
-    top_k: int = MEMORY_TOP_K,
     min_score: float = 0.35,
 ) -> List[dict]:
     del user_id
@@ -211,7 +210,6 @@ def search_memory(
             FROM messages
             WHERE session_id = ?
             ORDER BY created_at DESC
-            LIMIT 2000
             """,
             (session_id,),
         ).fetchall()
@@ -248,9 +246,9 @@ def search_memory(
                     )
                 )
         scored.sort(key=lambda item: item[0], reverse=True)
-        return [item for _, item in scored[:top_k]]
+        return [item for _, item in scored]
 
-    return _tfidf_search(query, rows, top_k=top_k, min_score=min_score)
+    return _tfidf_search(query, rows, min_score=min_score)
 
 
 def get_session_messages(session_id: str) -> List[dict]:

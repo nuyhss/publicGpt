@@ -118,8 +118,6 @@ def call_llm(
     temperature: Optional[float] = None,
     max_tokens: Optional[int] = None,
 ) -> Dict[str, Any]:
-    _raise_openai_config_error()
-
     model = model or DEFAULT_MODEL
     temperature = temperature if temperature is not None else LLM_TEMPERATURE
     max_tokens = max_tokens or LLM_MAX_TOKENS
@@ -131,6 +129,36 @@ def call_llm(
     }
     if not str(model).startswith("gpt-5"):
         payload["temperature"] = temperature
+
+    return _call_openai_responses(payload, model)
+
+
+def call_llm_with_image(
+    prompt: str,
+    image_url: str,
+    model: Optional[str] = None,
+    max_tokens: Optional[int] = None,
+) -> Dict[str, Any]:
+    model = model or DEFAULT_MODEL
+    max_tokens = max_tokens or LLM_MAX_TOKENS
+    payload: Dict[str, Any] = {
+        "model": model,
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": image_url, "detail": "high"},
+                ],
+            }
+        ],
+        "max_output_tokens": max_tokens,
+    }
+    return _call_openai_responses(payload, model)
+
+
+def _call_openai_responses(payload: Dict[str, Any], model: str) -> Dict[str, Any]:
+    _raise_openai_config_error()
 
     last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
