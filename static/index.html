@@ -74,16 +74,40 @@
       grid-template-columns: 260px minmax(0, 1fr);
       height: 100vh;
       overflow: hidden;
+      transition: grid-template-columns 0.22s ease;
+    }
+
+    .app-shell::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
     }
 
     .sidebar {
       display: flex;
       flex-direction: column;
       min-height: 0;
+      width: 260px;
       padding: 12px 10px;
       background: rgba(248, 251, 255, 0.78);
       border-right: 1px solid var(--line);
       backdrop-filter: blur(14px);
+      transition: transform 0.22s ease, opacity 0.18s ease;
+      transform-origin: left center;
+    }
+
+    .app-shell.sidebar-collapsed {
+      grid-template-columns: 0 minmax(0, 1fr);
+    }
+
+    .app-shell.sidebar-collapsed .sidebar {
+      transform: translateX(-110%);
+      opacity: 0;
+      pointer-events: none;
     }
 
     .sidebar-top {
@@ -99,6 +123,7 @@
       align-items: center;
       gap: 12px;
       min-width: 0;
+      flex: 1;
     }
 
     .brand-logo {
@@ -209,6 +234,7 @@
       transform: rotate(-90deg);
     }
 
+    .icon-button svg,
     .nav-item svg,
     .new-chat svg,
     .chat-actions button svg,
@@ -493,6 +519,13 @@
       backdrop-filter: blur(10px);
     }
 
+    .topbar-leading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
     .topbar-title {
       display: flex;
       align-items: center;
@@ -512,6 +545,10 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .sidebar-toggle-main {
+      flex-shrink: 0;
     }
 
     .share-notice {
@@ -945,6 +982,7 @@
 
     body.share-mode .sidebar,
     body.share-mode .control-row,
+    body.share-mode .sidebar-toggle-main,
     body.share-mode .composer-wrap {
       display: none;
     }
@@ -973,7 +1011,26 @@
       }
 
       .sidebar {
-        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 25;
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+        transform: translateX(-110%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .app-shell.sidebar-open::after {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .app-shell.sidebar-open .sidebar {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
       }
 
       .topbar {
@@ -1030,7 +1087,7 @@
           <img class="brand-logo" src="/static/swf-logo.svg" alt="PublicGPT logo">
           <div class="brand-label">PublicGPT</div>
         </div>
-        <button class="icon-button" type="button" aria-label="Sidebar menu">
+        <button class="icon-button" id="sidebarToggleBtn" type="button" aria-label="사이드바 접기" aria-expanded="true">
           <svg viewBox="0 0 24 24">
             <path d="M4 7h16"></path>
             <path d="M4 12h16"></path>
@@ -1087,9 +1144,18 @@
 
     <main class="main">
       <div class="topbar">
-        <div class="topbar-title">
-          <span id="chatTitle">PublicGPT</span>
-          <small id="topbarSubtitle">OpenAI chat</small>
+        <div class="topbar-leading">
+          <button class="icon-button sidebar-toggle-main" id="sidebarRevealBtn" type="button" aria-label="사이드바 펼치기" aria-expanded="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h16"></path>
+              <path d="M4 12h16"></path>
+              <path d="M4 17h16"></path>
+            </svg>
+          </button>
+          <div class="topbar-title">
+            <span id="chatTitle">PublicGPT</span>
+            <small id="topbarSubtitle">OpenAI chat</small>
+          </div>
         </div>
         <div class="topbar-actions">
           <button class="topbar-action" id="shareChatBtn" type="button">
@@ -1183,6 +1249,7 @@
   <script>
     const API = window.location.origin;
     const shareQueryChatId = new URLSearchParams(window.location.search).get("share");
+    const SIDEBAR_STORAGE_KEY = "publicgpt.sidebarOpen";
     const DEFAULT_WELCOME_TITLE = "무엇을 도와드릴까요?";
     const DEFAULT_WELCOME_TEXT = "긴 대화도 계속 이어질 수 있도록, 대화 흐름에 집중한 ChatGPT 스타일 레이아웃으로 정리했습니다.";
     const DEFAULT_PROJECT_NAME = "새 채팅";
@@ -1193,10 +1260,13 @@
       currentChatId: null,
       projectsCollapsed: false,
       shareChatId: shareQueryChatId ? shareQueryChatId.trim() || null : null,
+      sidebarOpen: true,
       loading: false,
     };
 
     const appShell = document.getElementById("appShell");
+    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+    const sidebarRevealBtn = document.getElementById("sidebarRevealBtn");
     const historyList = document.getElementById("historyList");
     const projectNavBtn = document.getElementById("projectNavBtn");
     const addProjectBtn = document.getElementById("addProjectBtn");
@@ -1226,6 +1296,17 @@
     let pendingImagePreviewUrl = "";
     let shareButtonTimerId = null;
 
+    try {
+      const savedSidebarPreference = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      if (savedSidebarPreference === "true" || savedSidebarPreference === "false") {
+        state.sidebarOpen = savedSidebarPreference === "true";
+      } else {
+        state.sidebarOpen = window.innerWidth > 960;
+      }
+    } catch (error) {
+      state.sidebarOpen = window.innerWidth > 960;
+    }
+
     function generateId(prefix) {
       return prefix + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
     }
@@ -1242,10 +1323,40 @@
       return Boolean(state.shareChatId);
     }
 
+    function isDesktopViewport() {
+      return window.innerWidth > 960;
+    }
+
+    function applySidebarState() {
+      const desktop = isDesktopViewport();
+      const sidebarVisible = !isShareMode() && state.sidebarOpen;
+      appShell.classList.toggle("sidebar-collapsed", desktop && !sidebarVisible);
+      appShell.classList.toggle("sidebar-open", !desktop && sidebarVisible);
+      sidebarToggleBtn.setAttribute("aria-expanded", sidebarVisible ? "true" : "false");
+      sidebarRevealBtn.setAttribute("aria-expanded", sidebarVisible ? "true" : "false");
+      sidebarToggleBtn.setAttribute("aria-label", sidebarVisible ? "사이드바 접기" : "사이드바 펼치기");
+      sidebarRevealBtn.setAttribute("aria-label", sidebarVisible ? "사이드바 접기" : "사이드바 펼치기");
+    }
+
+    function setSidebarOpen(nextOpen) {
+      state.sidebarOpen = Boolean(nextOpen);
+      applySidebarState();
+      try {
+        window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(state.sidebarOpen));
+      } catch (error) {
+        console.warn("Failed to store sidebar preference", error);
+      }
+    }
+
+    function toggleSidebar() {
+      setSidebarOpen(!state.sidebarOpen);
+    }
+
     function setShareMode(enabled) {
       document.body.classList.toggle("share-mode", enabled);
       appShell.classList.toggle("share-mode", enabled);
       topbarSubtitle.textContent = enabled ? "공유된 채팅" : "OpenAI chat";
+      applySidebarState();
     }
 
     function setWelcomeContent(title, text) {
@@ -1517,6 +1628,9 @@
           : (project.chatIds || []).find((chatId) => state.chats[chatId]) || null;
       renderHistory();
       renderCurrentChat(false);
+      if (!isDesktopViewport()) {
+        setSidebarOpen(false);
+      }
     }
 
     function selectFallbackChat(projectId = state.currentProjectId) {
@@ -1664,6 +1778,9 @@
             state.currentChatId = chat.id;
             renderHistory();
             renderCurrentChat(false);
+            if (!isDesktopViewport()) {
+              setSidebarOpen(false);
+            }
           });
 
           const deleteBtn = document.createElement("button");
@@ -2090,7 +2207,14 @@
       createProject(name);
     }
 
-    newChatBtn.addEventListener("click", () => createChat(state.currentProjectId || ensureDefaultProject()));
+    newChatBtn.addEventListener("click", () => {
+      createChat(state.currentProjectId || ensureDefaultProject());
+      if (!isDesktopViewport()) {
+        setSidebarOpen(false);
+      }
+    });
+    sidebarToggleBtn.addEventListener("click", toggleSidebar);
+    sidebarRevealBtn.addEventListener("click", toggleSidebar);
     projectNavBtn.addEventListener("click", () => {
       state.projectsCollapsed = !state.projectsCollapsed;
       renderHistory();
@@ -2109,7 +2233,9 @@
         sendMessage();
       }
     });
+    window.addEventListener("resize", applySidebarState);
 
+    applySidebarState();
     autoResizeTextarea();
     loadModels();
     loadHealth();
